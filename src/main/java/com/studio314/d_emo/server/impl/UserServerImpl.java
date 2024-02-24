@@ -4,6 +4,7 @@ import com.studio314.d_emo.mapper.UserMapper;
 import com.studio314.d_emo.pojo.User;
 import com.studio314.d_emo.server.UserServer;
 import com.studio314.d_emo.utils.EncodeUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
 @Component
 public class UserServerImpl implements UserServer {
 
+    @Autowired
     UserMapper userMapper;
 
     /**
