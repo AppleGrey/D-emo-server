@@ -30,6 +30,6 @@ public interface UserMapper {
      * @param user 用户类实例
      */
     @Options(keyProperty = "ID", useGeneratedKeys = true)
-    @Insert("insert into User(uName, mail, password) values (#{uName}, #{mail}, #{password})")
+    @Insert("insert into user(uName, mail, password) values (#{uName}, #{mail}, #{password})")
     void register(User user);
 }
