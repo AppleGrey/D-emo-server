@@ -1,6 +1,8 @@
 package com.studio314.d_emo.server;
 
 import com.alibaba.fastjson.JSONObject;
+import com.studio314.d_emo.mapper.ChatsMapper;
+import com.studio314.d_emo.pojo.Chats;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
@@ -8,6 +10,7 @@ import jakarta.websocket.Session;
 import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +41,12 @@ public class ChatServer {
      *用来存在线连接用户信息
      */
     private static ConcurrentHashMap<String,Session> sessionPool = new ConcurrentHashMap<String,Session>();
+
+    @Autowired ChatsMapper setChatsMapper(ChatsMapper chatsMapper){
+        return ChatServer.chatsMapper = chatsMapper;
+    }
+
+    static ChatsMapper chatsMapper;
 
     /**
      * 连接成功方法
@@ -75,19 +84,26 @@ public class ChatServer {
     public void onMessage(@PathParam("myUserId") String userId, String body){
         try {
             //将Body解析
-            JSONObject jsonObject = JSONObject.parseObject(body);
+            JSONObject clientJsonObject = JSONObject.parseObject(body);
             //获取目标用户地址
-            String targetUserId = jsonObject.getString("targetUserId");
+            String targetUserId = clientJsonObject.getString("userId");
+            String clientMessage = clientJsonObject.getString("content");
+            log.info("【websocket消息】 用户："+ userId + " 发送消息给服务器：" + clientMessage);
             //获取需要发送的消息
-            String message = jsonObject.getString("message");
-            jsonObject.put("userId" , userId);
+            String message = "你好，客户端，我是服务器";
+            JSONObject serverJsonObject = new JSONObject();
+            serverJsonObject.put("message", message);
             if(userId.equals(targetUserId)){
-                sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(jsonObject));
+                sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
             }else{
-                sendMoreMessage(new String[]{userId , targetUserId} ,  JSONObject.toJSONString(jsonObject));
+                sendMoreMessage(new String[]{userId , targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
             }
+            //保存消息
+            chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, 0);
+
         } catch (Exception e) {
             log.error("---------------WebSocket消息异常---------------");
+            e.printStackTrace();
         }
     }
 
@@ -122,6 +138,7 @@ public class ChatServer {
                 session.getAsyncRemote().sendText(message);
             } catch (Exception e) {
                 log.error("---------------WebSocket单点消息发送异常---------------");
+                e.printStackTrace();
             }
         }
     }

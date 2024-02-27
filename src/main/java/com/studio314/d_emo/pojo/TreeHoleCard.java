@@ -9,10 +9,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Time;
-@TableName("treeHoleCard")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
+    @TableName("treeHoleCard")
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
 public class TreeHoleCard {
     @TableId(type = IdType.AUTO, value = "cardID")
     int cardID;
@@ -22,4 +22,6 @@ public class TreeHoleCard {
     String text;
     @TableField("emotionId")
     int emotionId;
+    @TableField("isPersonal")
+    int isPersonal;
 }

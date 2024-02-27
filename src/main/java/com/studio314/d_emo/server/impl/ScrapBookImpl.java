@@ -6,24 +6,19 @@ import com.studio314.d_emo.server.ScrapBookServer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/**
- * TODO
- *
- * @Description
- * @Author 钱波
- * @Date 2024/2/26 14:16
- **/
+
 @Component
 public class ScrapBookImpl implements ScrapBookServer {
     @Autowired
-    private TreeHoleCardMapper treeHoleCardMapper;
+    TreeHoleCardMapper treeHoleCardMapper;
 
     @Override
-    public void insertTreeHoleCard(String imageURL, String text, int emotionId) {
+    public void insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal) {
         TreeHoleCard treeHoleCard = new TreeHoleCard();
         treeHoleCard.setImageURL(imageURL);
         treeHoleCard.setText(text);
         treeHoleCard.setEmotionId(emotionId);
+        treeHoleCard.setIsPersonal(isPersonal);
         treeHoleCardMapper.insert(treeHoleCard);
     }
 
