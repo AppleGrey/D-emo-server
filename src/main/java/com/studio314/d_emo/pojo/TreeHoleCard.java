@@ -16,12 +16,20 @@ import java.sql.Time;
 public class TreeHoleCard {
     @TableId(type = IdType.AUTO, value = "cardID")
     int cardID;
+
     @TableField("imageURL")
     String imageURL;
-    Time time;
+
+    String date;
+
     String text;
+
     @TableField("emotionId")
     int emotionId;
+
     @TableField("isPersonal")
     int isPersonal;
+
+    @TableField("userId")
+    int userId;
 }

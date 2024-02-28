@@ -13,13 +13,21 @@ public class ScrapBookImpl implements ScrapBookServer {
     TreeHoleCardMapper treeHoleCardMapper;
 
     @Override
-    public void insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal) {
+    public void insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal, int userID) {
         TreeHoleCard treeHoleCard = new TreeHoleCard();
         treeHoleCard.setImageURL(imageURL);
         treeHoleCard.setText(text);
         treeHoleCard.setEmotionId(emotionId);
         treeHoleCard.setIsPersonal(isPersonal);
+        treeHoleCard.setUserId(userID);
         treeHoleCardMapper.insert(treeHoleCard);
     }
+
+    @Override
+    public TreeHoleCard getTreeHoleCard(int cardId) {
+        TreeHoleCard treeHoleCard = treeHoleCardMapper.selectById(cardId);
+        return treeHoleCard;
+    }
+
 
 }

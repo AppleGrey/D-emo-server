@@ -87,19 +87,30 @@ public class ChatServer {
             JSONObject clientJsonObject = JSONObject.parseObject(body);
             //获取目标用户地址
             String targetUserId = clientJsonObject.getString("userId");
+            //获取消息内容
             String clientMessage = clientJsonObject.getString("content");
+            //获取消息类型
+            int type =  clientJsonObject.getIntValue("type");
+            if (type == 0){
+                // 保存文本消息
+                chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0);
+            } else if (type == 1) {
+                // 保存图片消息
+                chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0);
+            }
             log.info("【websocket消息】 用户："+ userId + " 发送消息给服务器：" + clientMessage);
             //获取需要发送的消息
-            String message = "你好，客户端，我是服务器";
+            String message = "https://d-emo.obs.cn-north-4.myhuaweicloud.com/scrapbook/IMG_20240226_162148.jpg";
+            String sendType = "1";
             JSONObject serverJsonObject = new JSONObject();
+            serverJsonObject.put("type", sendType);
             serverJsonObject.put("message", message);
             if(userId.equals(targetUserId)){
                 sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
             }else{
                 sendMoreMessage(new String[]{userId , targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
             }
-            //保存消息
-            chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, 0);
+
 
         } catch (Exception e) {
             log.error("---------------WebSocket消息异常---------------");
