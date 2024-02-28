@@ -1,10 +1,13 @@
 package com.studio314.d_emo.server.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.studio314.d_emo.mapper.TreeHoleCardMapper;
 import com.studio314.d_emo.pojo.TreeHoleCard;
 import com.studio314.d_emo.server.ScrapBookServer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * TODO
@@ -25,6 +28,16 @@ public class ScrapBookImpl implements ScrapBookServer {
         treeHoleCard.setText(text);
         treeHoleCard.setEmotionId(emotionId);
         treeHoleCardMapper.insert(treeHoleCard);
+    }
+
+    @Override
+    public List<TreeHoleCard> getAllEmotionId(int userId) {
+        //取出该用户所有的情感id
+        LambdaQueryWrapper<TreeHoleCard> wrapper = new LambdaQueryWrapper<TreeHoleCard>();
+        wrapper.eq(TreeHoleCard::getUserId, userId);
+        List<TreeHoleCard> treeHoleCards = treeHoleCardMapper.selectList(wrapper);
+        return treeHoleCards;
+
     }
 
 }

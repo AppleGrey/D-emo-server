@@ -20,4 +20,8 @@ public class TreeHoleCardController {
         scrapBookServer.insertTreeHoleCard(imageURL, text, emotionId);
         return Result.success();
     }
+    @PostMapping("/getAllEmotionId")
+    public Result getAllEmotionId(int userId) {
+        return Result.success(scrapBookServer.getAllEmotionId(userId));
+    }
 }

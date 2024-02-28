@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.sql.Time;
+import java.sql.Timestamp;
+
 @TableName("treeHoleCard")
 @Data
 @NoArgsConstructor
@@ -18,8 +20,10 @@ public class TreeHoleCard {
     int cardID;
     @TableField("imageURL")
     String imageURL;
-    Time time;
+    String date;
     String text;
     @TableField("emotionId")
     int emotionId;
+    @TableField("userId")
+    int userId;
 }

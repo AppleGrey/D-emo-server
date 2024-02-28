@@ -1,5 +1,9 @@
 package com.studio314.d_emo.server;
 
+import com.studio314.d_emo.pojo.TreeHoleCard;
+
+import java.util.List;
+
 /**
  * @ClassName ScrapBookServer
  * @description: 对应前端日记类的服务接口
@@ -15,4 +19,6 @@ public interface ScrapBookServer {
      * @param emotionId 情感id
      */
     void insertTreeHoleCard(String imageURL, String text, int emotionId);
+
+    List<TreeHoleCard> getAllEmotionId(int userId);
 }
