@@ -19,5 +19,6 @@ public class User {
     private String password;
     private String head; //头像url
     private String uName;
+    private String signature; //个性签名
 
 }

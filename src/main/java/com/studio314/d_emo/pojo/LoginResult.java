@@ -15,4 +15,6 @@ public class LoginResult {
     String password;
     String head;
     String token;
+    String avatar;
+    String signature;
 }
