@@ -1,5 +1,6 @@
 package com.studio314.d_emo.controller;
 
+import com.studio314.d_emo.pojo.LoginResult;
 import com.studio314.d_emo.pojo.Result;
 import com.studio314.d_emo.pojo.User;
 import com.studio314.d_emo.server.UserServer;
@@ -38,7 +39,9 @@ public class UserController {
             claims.put("ID", user.getID());
             String jwt = JwtUtils.generateJwt(claims);
             log.info("用户:" + user.getUName() + "，ID:" + user.getID() + "登录成功");
-            return Result.success(jwt);
+            LoginResult loginResult = new LoginResult(user.getID(), user.getUName(), user.getMail(), user.getPassword(), user.getHead(), jwt);
+
+            return Result.success(loginResult);
         }
         log.info("用户尝试登录失败，邮箱为:" + mail);
         return Result.error("login fail");
@@ -68,7 +71,4 @@ public class UserController {
         log.info("用户:" + user.getUName() + "，ID:" + user.getID() + "注册成功");
         return Result.success(jwt);
     }
-
-
-
 }

@@ -19,10 +19,10 @@ import java.util.List;
 @Component
 public class ScrapBookImpl implements ScrapBookServer {
     @Autowired
-    private TreeHoleCardMapper treeHoleCardMapper;
+    TreeHoleCardMapper treeHoleCardMapper;
 
     @Override
-    public void insertTreeHoleCard(String imageURL, String text, int emotionId) {
+    public void insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal) {
         TreeHoleCard treeHoleCard = new TreeHoleCard();
         treeHoleCard.setImageURL(imageURL);
         treeHoleCard.setText(text);

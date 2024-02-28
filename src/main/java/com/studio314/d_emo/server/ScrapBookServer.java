@@ -21,4 +21,5 @@ public interface ScrapBookServer {
     void insertTreeHoleCard(String imageURL, String text, int emotionId);
 
     List<TreeHoleCard> getAllEmotionId(int userId);
+    void insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal);
 }
