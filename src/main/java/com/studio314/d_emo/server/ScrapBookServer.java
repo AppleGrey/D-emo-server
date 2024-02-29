@@ -1,6 +1,7 @@
 package com.studio314.d_emo.server;
 
 
+import com.studio314.d_emo.Other.Statistic;
 import com.studio314.d_emo.pojo.TreeHoleCard;
 
 import java.util.List;
@@ -17,10 +18,7 @@ public interface ScrapBookServer {
      */
     void insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal, int userID);
 
-    /**
-     * 获取树洞卡片
-     * @param userId 用户id
-     * @return 树洞卡片列表
-     */
-    TreeHoleCard getTreeHoleCard(int cardId);
+    Statistic getStatistic(int userId, int flag);
+
+    List<TreeHoleCard> getTreeHoleCard(int cardId);
 }
