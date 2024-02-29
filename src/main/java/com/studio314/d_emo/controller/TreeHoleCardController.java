@@ -5,6 +5,7 @@ import com.studio314.d_emo.server.ScrapBookServer;
 import com.studio314.d_emo.server.UserServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,5 +28,15 @@ public class TreeHoleCardController {
     @PostMapping("/getAllEmotionId")
     public Result getAllEmotionId(int userId) {
         return Result.success(scrapBookServer.getAllEmotionId(userId));
+    }
+
+    @PostMapping("/getStatistic")
+    public Result getStatistic(int userId,int flag) {
+        return Result.success(scrapBookServer.getStatistic(userId,flag));
+    }
+
+    @PostMapping("/getTreeHoleCard")
+    public Result getTreeHoleCard(int cardID) {
+        return Result.success(scrapBookServer.getTreeHoleCard(cardID));
     }
 }
