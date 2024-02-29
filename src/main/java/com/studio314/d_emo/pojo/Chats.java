@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Chats {
+    @TableField("senderID")
     int senderID;
     @TableField("sendTime")
     String sendTime;
@@ -21,6 +22,6 @@ public class Chats {
     int type;
     @TableId(type = IdType.AUTO, value = "messageID")
     int messageID;
-    @TableField("receiverID")
-    int receiverID;
+    @TableField("isReceiver")
+    int isReceiver;
 }

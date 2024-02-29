@@ -39,8 +39,14 @@ public class UserController {
             claims.put("ID", user.getID());
             String jwt = JwtUtils.generateJwt(claims);
             log.info("用户:" + user.getUName() + "，ID:" + user.getID() + "登录成功");
-            LoginResult loginResult = new LoginResult(user.getID(), user.getUName(), user.getMail(), user.getPassword(), user.getHead(), jwt);
-
+            LoginResult loginResult = new LoginResult();
+            loginResult.setID(user.getID());
+            loginResult.setUName(user.getUName());
+            loginResult.setMail(user.getMail());
+            loginResult.setPassword(user.getPassword());
+            loginResult.setHead(user.getHead());
+            loginResult.setSignature(user.getSignature());
+            loginResult.setToken(jwt);
             return Result.success(loginResult);
         }
         log.info("用户尝试登录失败，邮箱为:" + mail);

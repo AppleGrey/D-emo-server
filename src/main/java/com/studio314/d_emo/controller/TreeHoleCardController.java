@@ -5,7 +5,6 @@ import com.studio314.d_emo.server.ScrapBookServer;
 import com.studio314.d_emo.server.UserServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,8 +19,8 @@ public class TreeHoleCardController {
     ScrapBookServer scrapBookServer;
 
     @PostMapping("/insertTreeHoleCard")
-    public Result insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal) {
-        scrapBookServer.insertTreeHoleCard(imageURL, text, emotionId, isPersonal);
+    public Result insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal, int userID) {
+        scrapBookServer.insertTreeHoleCard(imageURL, text, emotionId, isPersonal,userID);
         log.info("插入树洞卡片成功");
         return Result.success();
     }

@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.springframework.stereotype.Repository;
 
 @Mapper
-public interface ChatsMapper {
-    @Insert("insert into chats(senderID, message, type) values (#{senderID}, #{message}, #{type})")
-    void insertChat(int senderID, String message, int type);
+public interface ChatsMapper extends BaseMapper<Chats>{
+    @Insert("insert into chats(senderID, message, type, isReceiver) values (#{senderID}, #{message}, #{type}, #{isReceiver})")
+    void insertChat(int senderID, String message, int type, int isReceiver);
 }
