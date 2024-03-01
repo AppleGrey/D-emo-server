@@ -21,4 +21,6 @@ public interface ScrapBookServer {
     Statistic getStatistic(int userId, int flag);
 
     List<TreeHoleCard> getTreeHoleCard(int cardId);
+
+    TreeHoleCard getOneTreeHoleCard(int cardId);
 }

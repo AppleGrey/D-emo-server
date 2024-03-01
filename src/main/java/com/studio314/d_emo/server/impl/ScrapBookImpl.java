@@ -131,6 +131,14 @@ public class ScrapBookImpl implements ScrapBookServer {
         return treeHoleCards;
     }
 
+    @Override
+    public TreeHoleCard getOneTreeHoleCard(int cardId) {
+        LambdaQueryWrapper<TreeHoleCard> wrapper = new LambdaQueryWrapper<TreeHoleCard>();
+        wrapper.eq(TreeHoleCard::getCardID, cardId);
+        TreeHoleCard treeHoleCard = treeHoleCardMapper.selectOne(wrapper);
+        return treeHoleCard;
+    }
+
 
     @Override
     public List<TreeHoleCard> getAllEmotionId(int userId) {
