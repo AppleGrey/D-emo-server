@@ -24,4 +24,6 @@ public class Chats {
     int messageID;
     @TableField("isReceiver")
     int isReceiver;
+    @TableField("audioTime")
+    int audioTime;
 }

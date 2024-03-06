@@ -10,4 +10,7 @@ import org.springframework.stereotype.Repository;
 public interface ChatsMapper extends BaseMapper<Chats>{
     @Insert("insert into chats(senderID, message, type, isReceiver) values (#{senderID}, #{message}, #{type}, #{isReceiver})")
     void insertChat(int senderID, String message, int type, int isReceiver);
+
+    @Insert("insert into chats(senderID, message, type, isReceiver, audioTime) values (#{senderID}, #{message}, #{type}, #{isReceiver}, #{audioTime})")
+    void insertChatWithAudio(int senderID, String message, int type, int isReceiver, int audioTime);
 }

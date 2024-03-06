@@ -89,6 +89,7 @@ public class ChatServer {
             String targetUserId = clientJsonObject.getString("userId");
             //获取消息内容
             String clientMessage = clientJsonObject.getString("content");
+            int audioTime = clientJsonObject.getIntValue("time");
             //获取消息类型
             int type =  clientJsonObject.getIntValue("type");
             if (type == 0){
@@ -97,6 +98,9 @@ public class ChatServer {
             } else if (type == 1) {
                 // 保存图片消息
                 chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0);
+            } else if (type == 2) {
+                // 保存音频消息
+                chatsMapper.insertChatWithAudio(Integer.parseInt(userId), clientMessage, type, 0, audioTime);
             }
             log.info("【websocket消息】 用户："+ userId + " 发送消息给服务器：" + clientMessage);
             //获取需要发送的消息
