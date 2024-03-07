@@ -15,4 +15,6 @@ public interface TodoServer {
     int markAsFinished(int id);
     int deleteTodo(int id);
     int updateTodoList(int id, String name, int duration, Timestamp date,int isfinished);
+
+//    Todo get
 }
