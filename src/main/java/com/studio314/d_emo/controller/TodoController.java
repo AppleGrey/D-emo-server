@@ -35,8 +35,6 @@ public class TodoController {
         } catch (Exception e) {
             return Result.error("日期格式错误");
         }
-        //将timestamp减少8小时
-        timestamp.setTime(timestamp.getTime()-8*60*60*1000);
         return Result.success(todoServer.addTodoList(userid, name, duration,timestamp, isfinished));
     }
     @PostMapping("/markAsFinished")
@@ -65,7 +63,6 @@ public class TodoController {
         } catch (Exception e) {
             return Result.error("日期格式错误");
         }
-        timestamp.setTime(timestamp.getTime()-8*60*60*1000);
         return Result.success(todoServer.updateTodoList(id, name, duration,timestamp, isfinished));
     }
 }
