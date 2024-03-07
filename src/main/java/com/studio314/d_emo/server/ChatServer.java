@@ -13,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -25,6 +28,8 @@ public class ChatServer {
      * 与客户端的连接会话，需要通过他来给客户端发消息
      */
     private Session session;
+
+    private Socket socket;
 
     /**
      * 当前用户ID
@@ -61,6 +66,8 @@ public class ChatServer {
             webSockets.add(this);
             sessionPool.put(userId, session);
             log.info("【websocket消息】 用户：" + userId + " 加入连接...");
+
+            socket = new Socket("127.0.0.1", 12345);
         } catch (Exception e) {
             log.error("---------------WebSocket连接异常---------------");
         }
@@ -95,6 +102,25 @@ public class ChatServer {
             if (type == 0){
                 // 保存文本消息
                 chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0);
+                //socket将clientMessage发送给服务器
+                BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
+                bos.write(clientMessage.getBytes());
+                bos.flush();
+                socket.shutdownOutput();
+
+                // 读取服务器上的响应数据
+                 BufferedInputStream bis1 = new BufferedInputStream(socket.getInputStream());
+                 byte[] data = new byte[10240];
+                int len = bis1.read(data);
+                String rec = new String(data,0,len);
+                log.info("【websocket消息】 用户："+ userId + " 接收消息："+rec);
+
+                //将获取到的消息发送给接收端
+                JSONObject serverJsonObject = new JSONObject();
+                serverJsonObject.put("type", 0);
+                serverJsonObject.put("message", rec);
+                sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
+
             } else if (type == 1) {
                 // 保存图片消息
                 chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0);
