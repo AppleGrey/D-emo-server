@@ -68,6 +68,7 @@ public class ChatServer {
             log.info("【websocket消息】 用户：" + userId + " 加入连接...");
 
             socket = new Socket("127.0.0.1", 12345);
+            log.info("【websocket消息】 用户：" + userId + " 连接服务器成功...");
         } catch (Exception e) {
             log.error("---------------WebSocket连接异常---------------");
         }
@@ -106,11 +107,11 @@ public class ChatServer {
                 BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
                 bos.write(clientMessage.getBytes());
                 bos.flush();
-                socket.shutdownOutput();
+//                socket.shutdownOutput();
 
                 // 读取服务器上的响应数据
-                 BufferedInputStream bis1 = new BufferedInputStream(socket.getInputStream());
-                 byte[] data = new byte[10240];
+                BufferedInputStream bis1 = new BufferedInputStream(socket.getInputStream());
+                byte[] data = new byte[10240];
                 int len = bis1.read(data);
                 String rec = new String(data,0,len);
                 log.info("【websocket消息】 用户："+ userId + " 接收消息："+rec);
@@ -127,18 +128,6 @@ public class ChatServer {
             } else if (type == 2) {
                 // 保存音频消息
                 chatsMapper.insertChatWithAudio(Integer.parseInt(userId), clientMessage, type, 0, audioTime);
-            }
-            log.info("【websocket消息】 用户："+ userId + " 发送消息给服务器：" + clientMessage);
-            //获取需要发送的消息
-            String message = "https://d-emo.obs.cn-north-4.myhuaweicloud.com/scrapbook/IMG_20240226_162148.jpg";
-            String sendType = "1";
-            JSONObject serverJsonObject = new JSONObject();
-            serverJsonObject.put("type", sendType);
-            serverJsonObject.put("message", message);
-            if(userId.equals(targetUserId)){
-                sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
-            }else{
-                sendMoreMessage(new String[]{userId , targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
             }
 
 
