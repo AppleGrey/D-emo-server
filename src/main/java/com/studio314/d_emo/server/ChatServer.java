@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -28,6 +29,11 @@ public class ChatServer {
      * 与客户端的连接会话，需要通过他来给客户端发消息
      */
     private Session session;
+
+    /**
+     * 是否第一次连接 ai 服务器
+     */
+    private boolean firstConnected = true;
 
     private Socket socket;
 
@@ -103,10 +109,29 @@ public class ChatServer {
             if (type == 0){
                 // 保存文本消息
                 chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0);
+                //将消息封装成json格式
+                JSONObject messageJsonObject = new JSONObject();
+                messageJsonObject.put("type", "text");
+                messageJsonObject.put("id", userId);
+                messageJsonObject.put("data", clientMessage);
+                messageJsonObject.put("firstConnect", firstConnected);
+
                 //socket将clientMessage发送给服务器
                 BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
-                bos.write(clientMessage.getBytes());
-                bos.flush();
+                try {
+                    bos.write(messageJsonObject.toJSONString().getBytes());
+                    firstConnected = false;
+                    bos.flush();
+                } catch(SocketException e) {
+                    System.out.println("服务器已断开");
+                    socket = new Socket("127.0.0.1", 12345);
+                    bos = new BufferedOutputStream(socket.getOutputStream());
+                    System.out.println("重新连接成功");
+                    messageJsonObject.put("firstConnect", true);
+                    bos.write(messageJsonObject.toJSONString().getBytes());
+                    firstConnected = false;
+                    bos.flush();
+                }
 //                socket.shutdownOutput();
 
                 // 读取服务器上的响应数据
@@ -116,6 +141,8 @@ public class ChatServer {
                 String rec = new String(data,0,len);
                 log.info("【websocket消息】 用户："+ userId + " 接收消息："+rec);
 
+                //将获取到的信息保存到数据库
+                chatsMapper.insertChat(Integer.parseInt(userId), rec, 0, 1);
                 //将获取到的消息发送给接收端
                 JSONObject serverJsonObject = new JSONObject();
                 serverJsonObject.put("type", 0);
@@ -125,6 +152,45 @@ public class ChatServer {
             } else if (type == 1) {
                 // 保存图片消息
                 chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0);
+                //将消息封装成json格式
+                JSONObject messageJsonObject = new JSONObject();
+                messageJsonObject.put("type", "img");
+                messageJsonObject.put("id", userId);
+                messageJsonObject.put("data", clientMessage);
+                messageJsonObject.put("firstConnect", firstConnected);
+
+                //socket将clientMessage发送给服务器
+                BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
+                try {
+                    bos.write(messageJsonObject.toJSONString().getBytes());
+                    firstConnected = false;
+                    bos.flush();
+                } catch(SocketException e) {
+                    System.out.println("服务器已断开");
+                    socket = new Socket("127.0.0.1", 12345);
+                    bos = new BufferedOutputStream(socket.getOutputStream());
+                    System.out.println("重新连接成功");
+                    messageJsonObject.put("firstConnect", true);
+                    bos.write(messageJsonObject.toJSONString().getBytes());
+                    firstConnected = false;
+                    bos.flush();
+                }
+//                socket.shutdownOutput();
+
+                // 读取服务器上的响应数据
+                BufferedInputStream bis1 = new BufferedInputStream(socket.getInputStream());
+                byte[] data = new byte[10240];
+                int len = bis1.read(data);
+                String rec = new String(data,0,len);
+                log.info("【websocket消息】 用户："+ userId + " 接收消息："+rec);
+
+                //将获取到的信息保存到数据库
+                chatsMapper.insertChat(Integer.parseInt(userId), rec, 0, 1);
+                //将获取到的消息发送给接收端
+                JSONObject serverJsonObject = new JSONObject();
+                serverJsonObject.put("type", 1);
+                serverJsonObject.put("message", rec);
+                sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
             } else if (type == 2) {
                 // 保存音频消息
                 chatsMapper.insertChatWithAudio(Integer.parseInt(userId), clientMessage, type, 0, audioTime);

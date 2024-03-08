@@ -66,6 +66,7 @@ public class UserController {
     public Result register(String mail, String name, String password, String confirm) {
         if(name.length() > 32) { return Result.error("昵称过长"); }
         if(password.length() > 48) { return Result.error("密码过长"); }
+        if(password.length() < 6) { return Result.error("密码过短，至少为6位"); }
         if(!password.equals(confirm)) { return Result.error("两次密码不一致"); }
         
         User user = userServer.register(mail, name, password);
