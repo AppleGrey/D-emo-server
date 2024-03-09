@@ -5,6 +5,7 @@ import com.studio314.d_emo.mapper.TreeHoleCardMapper;
 import com.studio314.d_emo.pojo.TreeHoleCard;
 import com.studio314.d_emo.server.ScrapBookServer;
 import com.studio314.d_emo.Other.Statistic;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,13 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * TODO
- *
- * @Description
- * @Author 钱波
- * @Date 2024/2/26 14:16
- **/
+@Slf4j
 @Component
 public class ScrapBookImpl implements ScrapBookServer {
     @Autowired
@@ -137,6 +132,21 @@ public class ScrapBookImpl implements ScrapBookServer {
         wrapper.eq(TreeHoleCard::getCardID, cardId);
         TreeHoleCard treeHoleCard = treeHoleCardMapper.selectOne(wrapper);
         return treeHoleCard;
+    }
+
+    @Override
+    public List<TreeHoleCard> getADayTreeHoleCard(int userId) {
+        //获取当天的树洞卡片
+        LocalDate currentDate = LocalDate.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String currentDateStr = currentDate.format(formatter);
+        LambdaQueryWrapper<TreeHoleCard> wrapper = new LambdaQueryWrapper<TreeHoleCard>();
+        wrapper.eq(TreeHoleCard::getUserId, userId);
+        // 时间大于等于当天的0点
+        wrapper.ge(TreeHoleCard::getDate, currentDateStr);
+        List<TreeHoleCard> treeHoleCards = treeHoleCardMapper.selectList(wrapper);
+        log.info("【ScrapBookImpl】getADayTreeHoleCard: " + treeHoleCards);
+        return treeHoleCards;
     }
 
 
