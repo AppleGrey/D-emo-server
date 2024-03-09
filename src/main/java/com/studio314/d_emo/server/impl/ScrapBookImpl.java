@@ -1,7 +1,9 @@
 package com.studio314.d_emo.server.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.studio314.d_emo.Other.Cards;
 import com.studio314.d_emo.mapper.TreeHoleCardMapper;
+import com.studio314.d_emo.mapper.UserMapper;
 import com.studio314.d_emo.pojo.TreeHoleCard;
 import com.studio314.d_emo.server.ScrapBookServer;
 import com.studio314.d_emo.Other.Statistic;
@@ -13,12 +15,15 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
 public class ScrapBookImpl implements ScrapBookServer {
     @Autowired
     TreeHoleCardMapper treeHoleCardMapper;
+    @Autowired
+    UserMapper userMapper;
 
     @Override
     public void insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal, int userID) {
@@ -118,12 +123,20 @@ public class ScrapBookImpl implements ScrapBookServer {
     }
 
     @Override
-    public List<TreeHoleCard> getTreeHoleCard(int cardID) {
+    public Cards getTreeHoleCard(int cardID) {
         LambdaQueryWrapper<TreeHoleCard> wrapper = new LambdaQueryWrapper<TreeHoleCard>();
         wrapper.gt(TreeHoleCard::getCardID, cardID);
         wrapper.last("limit 10");
         List<TreeHoleCard> treeHoleCards = treeHoleCardMapper.selectList(wrapper);
-        return treeHoleCards;
+        Cards cards = new Cards();
+        cards.treeHoleCards = treeHoleCards;
+        //遍历treeHoleCards，取出每个treeHoleCard的userId，然后根据userId取出username
+        for (TreeHoleCard treeHoleCard : treeHoleCards) {
+            int userId = treeHoleCard.getUserId();
+            String username = userMapper.selectById(userId).getUName();
+            cards.usernames.put(userId, username);
+        }
+        return cards;
     }
 
     @Override
@@ -161,3 +174,4 @@ public class ScrapBookImpl implements ScrapBookServer {
     }
 
 }
+
