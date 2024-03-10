@@ -12,4 +12,8 @@ public interface UserServer {
 
 
     User register(String mail, String name, String password);
+
+    int registerByCode(String mail, String name, String password, String code);
+
+    boolean isRegistered(String mail);
 }

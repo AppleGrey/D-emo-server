@@ -1,12 +1,16 @@
 package com.studio314.d_emo.server.impl;
 
 import com.studio314.d_emo.mapper.UserMapper;
+import com.studio314.d_emo.mapper.VCodeMapper;
 import com.studio314.d_emo.pojo.User;
+import com.studio314.d_emo.pojo.VCode;
 import com.studio314.d_emo.server.UserServer;
 import com.studio314.d_emo.utils.EncodeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Component
@@ -14,6 +18,9 @@ public class UserServerImpl implements UserServer {
 
     @Autowired
     UserMapper userMapper;
+
+    @Autowired
+    VCodeMapper vCodeMapper;
 
     /**
      *
@@ -63,6 +70,40 @@ public class UserServerImpl implements UserServer {
         userMapper.register(user);
 
         return user;
+    }
+
+    @Override
+    public int registerByCode(String mail, String name, String password, String code) {
+        //判断是否已经注册
+        User user = userMapper.getUser_mail(mail);
+        if(user != null) { return -2; }
+
+        //判断验证码是否正确
+        List<VCode> codes = vCodeMapper.getCode(mail, code);
+        boolean isOK = false;
+        for(VCode s : codes) {
+            LocalDateTime cTime = s.getCTime();
+            LocalDateTime current = LocalDateTime.now();
+            if (Duration.between(cTime, current).toMillis() <= 600000) {
+                isOK = true;
+                break;
+            }
+        }
+        if(!isOK) { return -1; }
+
+        //注册
+        User user1 = new User();
+        user1.setMail(mail);
+        user1.setPassword(password);
+        user1.setUName(name);
+        userMapper.register(user1);
+        return user1.getID();
+    }
+
+    @Override
+    public boolean isRegistered(String mail) {
+        User user = userMapper.getUser_mail(mail);
+        return user != null;
     }
 
 }

@@ -11,6 +11,7 @@ import jakarta.websocket.server.PathParam;
 import jakarta.websocket.server.ServerEndpoint;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedInputStream;
@@ -29,6 +30,12 @@ public class ChatServer {
      * 与客户端的连接会话，需要通过他来给客户端发消息
      */
     private Session session;
+
+    private static String pythonServer;
+
+    @Value("${ip.pythonServer}") String setPythonServer(String pythonServer){
+        return ChatServer.pythonServer = pythonServer;
+    }
 
     /**
      * 是否第一次连接 ai 服务器
@@ -73,8 +80,8 @@ public class ChatServer {
             sessionPool.put(userId, session);
             log.info("【websocket消息】 用户：" + userId + " 加入连接...");
 
-            socket = new Socket("127.0.0.1", 12345);
-            log.info("【websocket消息】 用户：" + userId + " 连接服务器成功...");
+//            socket = new Socket(pythonServer, 12345);
+//            log.info("【websocket消息】 用户：" + userId + " 连接服务器成功...");
         } catch (Exception e) {
             log.error("---------------WebSocket连接异常---------------");
         }
@@ -97,6 +104,10 @@ public class ChatServer {
     @OnMessage
     public void onMessage(@PathParam("myUserId") String userId, String body){
         try {
+            if (socket == null) {
+                socket = new Socket(pythonServer, 12345);
+                log.info("【websocket消息】 用户：" + userId + " 连接服务器成功...");
+            }
             //将Body解析
             JSONObject clientJsonObject = JSONObject.parseObject(body);
             //获取目标用户地址
@@ -112,7 +123,7 @@ public class ChatServer {
                 //将消息封装成json格式
                 JSONObject messageJsonObject = new JSONObject();
                 messageJsonObject.put("type", "text");
-                messageJsonObject.put("id", userId);
+                messageJsonObject.put("ID", Integer.parseInt(userId));
                 messageJsonObject.put("data", clientMessage);
                 messageJsonObject.put("firstConnect", firstConnected);
 
@@ -123,10 +134,10 @@ public class ChatServer {
                     firstConnected = false;
                     bos.flush();
                 } catch(SocketException e) {
-                    System.out.println("服务器已断开");
-                    socket = new Socket("127.0.0.1", 12345);
+                    log.info("服务器已断开");
+                    socket = new Socket(pythonServer, 12345);
                     bos = new BufferedOutputStream(socket.getOutputStream());
-                    System.out.println("重新连接成功");
+                    log.info("重新连接成功");
                     messageJsonObject.put("firstConnect", true);
                     bos.write(messageJsonObject.toJSONString().getBytes());
                     firstConnected = false;
@@ -139,14 +150,18 @@ public class ChatServer {
                 byte[] data = new byte[10240];
                 int len = bis1.read(data);
                 String rec = new String(data,0,len);
-                log.info("【websocket消息】 用户："+ userId + " 接收消息："+rec);
+                JSONObject recJsonObject = JSONObject.parseObject(rec);
+                String recData = recJsonObject.getString("data");
+                //text为utf-8字符，解码
+                String recText = new String(recData.getBytes("utf-8"), "utf-8");
+                log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
 
                 //将获取到的信息保存到数据库
-                chatsMapper.insertChat(Integer.parseInt(userId), rec, 0, 1);
+                chatsMapper.insertChat(Integer.parseInt(userId), recText, 0, 1);
                 //将获取到的消息发送给接收端
                 JSONObject serverJsonObject = new JSONObject();
                 serverJsonObject.put("type", 0);
-                serverJsonObject.put("message", rec);
+                serverJsonObject.put("message", recText);
                 sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
 
             } else if (type == 1) {
@@ -155,7 +170,7 @@ public class ChatServer {
                 //将消息封装成json格式
                 JSONObject messageJsonObject = new JSONObject();
                 messageJsonObject.put("type", "img");
-                messageJsonObject.put("id", userId);
+                messageJsonObject.put("ID", Integer.parseInt(userId));
                 messageJsonObject.put("data", clientMessage);
                 messageJsonObject.put("firstConnect", firstConnected);
 
@@ -167,7 +182,7 @@ public class ChatServer {
                     bos.flush();
                 } catch(SocketException e) {
                     System.out.println("服务器已断开");
-                    socket = new Socket("127.0.0.1", 12345);
+                    socket = new Socket(pythonServer, 12345);
                     bos = new BufferedOutputStream(socket.getOutputStream());
                     System.out.println("重新连接成功");
                     messageJsonObject.put("firstConnect", true);
@@ -182,14 +197,18 @@ public class ChatServer {
                 byte[] data = new byte[10240];
                 int len = bis1.read(data);
                 String rec = new String(data,0,len);
-                log.info("【websocket消息】 用户："+ userId + " 接收消息："+rec);
+                JSONObject recJsonObject = JSONObject.parseObject(rec);
+                String recData = recJsonObject.getString("data");
+                //text为utf-8字符，解码
+                String recText = new String(recData.getBytes("utf-8"), "utf-8");
+                log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
 
                 //将获取到的信息保存到数据库
-                chatsMapper.insertChat(Integer.parseInt(userId), rec, 0, 1);
+                chatsMapper.insertChat(Integer.parseInt(userId), recText, 0, 1);
                 //将获取到的消息发送给接收端
                 JSONObject serverJsonObject = new JSONObject();
-                serverJsonObject.put("type", 1);
-                serverJsonObject.put("message", rec);
+                serverJsonObject.put("type", 0);
+                serverJsonObject.put("message", recText);
                 sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
             } else if (type == 2) {
                 // 保存音频消息

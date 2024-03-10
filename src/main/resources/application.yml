@@ -7,3 +7,30 @@ spring:
     suffix: .html
     check-template-location: true
     template-resolver-order: 1
+
+  mail:
+    # SMTP服务器，这个是QQ邮箱的  其他邮箱请另行百度
+    host: smtp.qq.com
+    # 发送验证码的邮箱
+    username: 2982437139@qq.com
+    # 授权码
+    password: ezmryoclfmgjddbg
+    # 编码
+    default-encoding: utf-8
+    # 其它参数
+    properties:
+      mail:
+        smtp:
+        # 如果是用 SSL 方式，需要配置如下属性,使用qq邮箱的话需要开启
+        ssl:
+          enable: true
+          required: true
+        # 邮件接收时间的限制，单位毫秒
+        timeout: 10000
+        # 连接时间的限制，单位毫秒
+        connectiontimeout: 10000
+        # 邮件发送时间的限制，单位毫秒
+        writetimeout: 10000
+
+ip:
+  pythonServer: 59.110.126.104
