@@ -1,5 +1,7 @@
 package com.studio314.d_emo.mapper;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.studio314.d_emo.pojo.TreeHoleCard;
 import com.studio314.d_emo.pojo.User;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -7,7 +9,7 @@ import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
 
 @Mapper
-public interface UserMapper {
+public interface UserMapper extends BaseMapper<User> {
 
     /**
      * 通过邮箱获取用户

@@ -1,6 +1,7 @@
 package com.studio314.d_emo.server;
 
 
+import com.studio314.d_emo.Other.Cards;
 import com.studio314.d_emo.Other.Statistic;
 import com.studio314.d_emo.pojo.TreeHoleCard;
 
@@ -20,7 +21,9 @@ public interface ScrapBookServer {
 
     Statistic getStatistic(int userId, int flag);
 
-    List<TreeHoleCard> getTreeHoleCard(int cardId);
+    Cards getTreeHoleCard(int cardId);
 
     TreeHoleCard getOneTreeHoleCard(int cardId);
+
+    List<TreeHoleCard> getADayTreeHoleCard(int userId);
 }
