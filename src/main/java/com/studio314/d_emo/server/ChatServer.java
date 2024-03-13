@@ -16,11 +16,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -301,12 +307,109 @@ public class ChatServer {
                 sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
             } else if (type == 2) {
 
+                // 分别为每个属性创建String变量
+                String appid = "8635128650";
+                String token = "0M1WqciqDTrWwOWo9L8voBAMTuTFYozO";
+                String cluster = "volc_auc_common";
+                String uid = "388808087185088";
+                String format = "ogg";
+                String audioUrl = clientMessage;
+//                String audioUrl = "https://d-emo.obs.cn-north-4.myhuaweicloud.com/chat/audio/ea31da9e-b997-4b73-886e-fd778f7d17a8.ogg";
+
+                String bearerToken ="Bearer; "+token;
+
+                // 构建JSON字符串
+                String jsonBody = "{\n" +
+                        "    \"app\": {\n" +
+                        "        \"appid\": \"" + appid + "\",\n" +
+                        "        \"token\": \"" + token + "\",\n" +
+                        "        \"cluster\": \"" + cluster + "\"\n" +
+                        "    },\n" +
+                        "    \"user\": {\n" +
+                        "        \"uid\": \"" + uid + "\"\n" +
+                        "   },\n" +
+                        "    \"audio\": {\n" +
+                        "        \"format\": \"" + format + "\",\n" +
+                        "        \"url\": \"" + audioUrl + "\"\n" +
+                        "    }\n" +
+                        "}";
+                // 创建HttpClient实例
+                HttpClient httpClient = HttpClient.newBuilder().build();
+                // 创建POST请求
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create("https://openspeech.bytedance.com/api/v1/auc/submit")) // 设置请求的URL
+                        .header("Content-Type", "application/json") // 设置请求头
+                        .header("Authorization", bearerToken) // 设置请求头
+                        .POST(HttpRequest.BodyPublishers.ofString(jsonBody)) // 设置请求体为JSON数据
+                        .build();
+                // 发送请求并获取响应
+                try {
+                    HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+                    // 输出响应结果
+                    System.out.println("Response Code: " + response.statusCode());
+                    System.out.println("Response Body: " + response.body());
+
+                    //下面解析返回的json数据
+                    // 将 JSON 字符串解析为 JSON 对象
+                    JsonObject jsonObject = new Gson().fromJson(response.body(), JsonObject.class);
+
+                    // 从 JSON 对象中获取 resp 对象
+                    JsonObject respObject = jsonObject.getAsJsonObject("resp");
+
+                    // 从 resp 对象中获取属性值
+                    String code = respObject.get("code").getAsString(); // 获取 code 属性的值
+                    String message = respObject.get("message").getAsString(); // 获取 message 属性的值
+                    String id = respObject.get("id").getAsString(); // 获取 id 属性的值
+
+                    // 输出属性值
+                    System.out.println("code: " + code);
+                    System.out.println("message: " + message);
+                    System.out.println("id: " + id);
+
+                    String queryJsonBody = "{\n" +
+                            "        \"appid\": \"" + appid + "\",\n" +
+                            "        \"token\": \"" + token + "\",\n" +
+                            "        \"cluster\": \"" + cluster + "\",\n" +
+                            "        \"id\": \"" + id + "\"\n" +
+                            "    }";
+                    System.out.println("queryJsonBody: " + queryJsonBody);
+                    // 创建POST请求
+                    HttpRequest queryRequest = HttpRequest.newBuilder()
+                            .uri(URI.create("https://openspeech.bytedance.com/api/v1/auc/query")) // 设置请求的URL
+                            .header("Content-Type", "application/json") // 设置请求头
+                            .header("Authorization", bearerToken) // 设置请求头
+                            .POST(HttpRequest.BodyPublishers.ofString(queryJsonBody)) // 设置请求体为JSON数据
+                            .build();
+                    // 发送请求并获取响应
+                    HttpResponse<String> queryResponse = httpClient.send(queryRequest, HttpResponse.BodyHandlers.ofString());
+                    //解析返回的json数据 从 JSON 对象中获取 resp 对象
+                    JsonObject queryJsonObject = new Gson().fromJson(queryResponse.body(), JsonObject.class);
+                    JsonObject queryRespObject = queryJsonObject.getAsJsonObject("resp");
+                    String text = queryRespObject.get("text").getAsString(); // 获取 text 属性的值
+                    //如果返回的text为空，说明还没有识别出来，可以继续查询
+                    while (text.equals("")) {
+                        Thread.sleep(1000);
+                        queryResponse = httpClient.send(queryRequest, HttpResponse.BodyHandlers.ofString());
+                        queryJsonObject = new Gson().fromJson(queryResponse.body(), JsonObject.class);
+                        queryRespObject = queryJsonObject.getAsJsonObject("resp");
+                        text = queryRespObject.get("text").getAsString(); // 获取 text 属性的值
+                    }
+                    System.out.println("text: " + text);
+                    clientMessage = text;
+                    clientMessage = new String(clientMessage.getBytes("utf-8"), "utf-8");
+                } catch (IOException | InterruptedException e) {
+                    e.printStackTrace();
+                }
+
                 //将消息封装成json格式
                 JSONObject messageJsonObject = new JSONObject();
-                messageJsonObject.put("type", "voice");
+                messageJsonObject.put("type", "text");
                 messageJsonObject.put("ID", Integer.parseInt(userId));
                 messageJsonObject.put("data", clientMessage);
                 messageJsonObject.put("firstConnect", firstConnected);
+
+
 
                 //socket将clientMessage发送给服务器
                 BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
