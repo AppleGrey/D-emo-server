@@ -22,6 +22,8 @@ import java.io.BufferedOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -197,21 +199,29 @@ public class ChatServer {
                 byte[] data = new byte[10240];
                 int len = bis1.read(data);
                 String rec = new String(data,0,len);
+                log.info("rec:"+rec);
                 JSONObject recJsonObject = JSONObject.parseObject(rec);
                 String recData = recJsonObject.getString("data");
                 String emotion = recJsonObject.getString("emotion");
-                String operate = recJsonObject.getString("operate");
-                JSONObject operateJsonObject = JSONObject.parseObject(operate);
+                String operator = recJsonObject.getString("operator");
+                log.info("operator:"+operator);
+                JSONObject operateJsonObject = JSONObject.parseObject(operator);
                 String operateType = operateJsonObject.getString("type");
 
                 if (operateType.equals("todo")){
-                    String date = operateJsonObject.getString("date");
-                    String name = operateJsonObject.getString("name");
+                    JSONObject todoJsonObject = JSONObject.parseObject(operateJsonObject.getString("data"));
+                    String date = todoJsonObject.getString("time");
+                    log.info("date:"+date);
+                    String name = todoJsonObject.getString("str");
+                    log.info("name:"+name);
                     Todo todo = new Todo();
-                    Timestamp timestamp = Timestamp.valueOf(date);
+//                    Timestamp timestamp = Timestamp.valueOf(date);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    Date parsedDate = dateFormat.parse(date);
+                    Timestamp timestamp = new Timestamp(parsedDate.getTime());
                     todo.setDate(timestamp);
                     todo.setName(name);
-                    todo.setId(Integer.parseInt(userId));
+                    todo.setUserid(Integer.parseInt(userId));
                     todo.setIsfinished(0);
                     todoMapper.insert(todo);
                 } else if (operateType.equals("diary")) {
@@ -226,8 +236,7 @@ public class ChatServer {
                 String recText = new String(recData.getBytes("utf-8"), "utf-8");
                 log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
 
-                //将获取到的信息保存到数据库
-                chatsMapper.insertChat(Integer.parseInt(userId), recText, 0, 1, null);
+
                 //将获取到的消息发送给接收端
                 JSONObject serverJsonObject = new JSONObject();
                 serverJsonObject.put("type", 0);
@@ -236,7 +245,8 @@ public class ChatServer {
                 log.info("emotion:"+emotion);
                 // 保存文本消息
                 chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0, emotion);
-
+                //将获取到的信息保存到数据库
+                chatsMapper.insertChat(Integer.parseInt(userId), recText, 0, 1, null);
 
             } else if (type == 1) {
 
@@ -320,26 +330,50 @@ public class ChatServer {
                 byte[] data = new byte[10240];
                 int len = bis1.read(data);
                 String rec = new String(data,0,len);
+                log.info("rec:"+rec);
                 JSONObject recJsonObject = JSONObject.parseObject(rec);
                 String recData = recJsonObject.getString("data");
                 String emotion = recJsonObject.getString("emotion");
-                //text为utf-8字符，解码
-                String recText = new String(recData.getBytes("utf-8"), "utf-8");
-                log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
+                String operator = recJsonObject.getString("operator");
+                log.info("operator:"+operator);
+                JSONObject operateJsonObject = JSONObject.parseObject(operator);
+                String operateType = operateJsonObject.getString("type");
+
+                if (operateType.equals("todo")){
+                    JSONObject todoJsonObject = JSONObject.parseObject(operateJsonObject.getString("data"));
+                    String date = todoJsonObject.getString("time");
+                    log.info("date:"+date);
+                    String name = todoJsonObject.getString("str");
+                    log.info("name:"+name);
+                    Todo todo = new Todo();
+//                    Timestamp timestamp = Timestamp.valueOf(date);
+                    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                    Date parsedDate = dateFormat.parse(date);
+                    Timestamp timestamp = new Timestamp(parsedDate.getTime());
+                    todo.setDate(timestamp);
+                    todo.setName(name);
+                    todo.setUserid(Integer.parseInt(userId));
+                    todo.setIsfinished(0);
+                    todoMapper.insert(todo);
+                }
 
                 //判断情绪是否在情绪列表中
                 if (!EMOTIONS.containsKey(emotion)) {
                     emotion = "-1";
                 }
-                //将获取到的信息保存到数据库
-                chatsMapper.insertChat(Integer.parseInt(userId), recText, 0, 1, null);
-                // 保存图片消息
-                chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0, emotion);
+
+                //text为utf-8字符，解码
+                String recText = new String(recData.getBytes("utf-8"), "utf-8");
+                log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
                 //将获取到的消息发送给接收端
                 JSONObject serverJsonObject = new JSONObject();
                 serverJsonObject.put("type", 0);
                 serverJsonObject.put("message", recText);
                 sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
+                // 保存音频消息
+                chatsMapper.insertChatWithAudio(Integer.parseInt(userId), clientMessage, type, 0, audioTime);
+                //将获取到的信息保存到数据库
+                chatsMapper.insertChat(Integer.parseInt(userId), recText, 0, 1, null);
             }
 
 
