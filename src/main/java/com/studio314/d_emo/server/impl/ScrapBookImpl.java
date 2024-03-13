@@ -193,7 +193,7 @@ public class ScrapBookImpl implements ScrapBookServer {
         wrapper.last("limit 1");
         Chats chats = chatsMapper.selectOne(wrapper);
         if (chats == null || chats.getEmotion() == null){
-            return "";
+            return "-1";
         }
         return chats.getEmotion();
     }
