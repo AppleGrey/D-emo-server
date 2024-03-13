@@ -2,7 +2,10 @@ package com.studio314.d_emo.server;
 
 import com.alibaba.fastjson.JSONObject;
 import com.studio314.d_emo.mapper.ChatsMapper;
+import com.studio314.d_emo.mapper.TodoMapper;
 import com.studio314.d_emo.pojo.Chats;
+import com.studio314.d_emo.pojo.Todo;
+import com.studio314.d_emo.server.impl.TodoServerImpl;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
@@ -18,6 +21,9 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.sql.Timestamp;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -33,7 +39,43 @@ public class ChatServer {
 
     private static String pythonServer;
 
-    @Value("${ip.pythonServer}") String setPythonServer(String pythonServer){
+    public static Map<String, Integer> EMOTIONS = new LinkedHashMap<>();
+
+    static {
+        EMOTIONS.put("[高兴]", 2131230904);
+        EMOTIONS.put("[生气]", 2131230915);
+        EMOTIONS.put("[喜欢]", 2131230926);
+        EMOTIONS.put("[失望]", 2131230928);
+        EMOTIONS.put("[幸灾乐祸]", 2131230929);
+        EMOTIONS.put("[调皮]", 2131230930);
+        EMOTIONS.put("[折磨]", 2131230931);
+        EMOTIONS.put("[感激]", 2131230932);
+        EMOTIONS.put("[害羞]", 2131230933);
+        EMOTIONS.put("[憎恨]", 2131230905);
+        EMOTIONS.put("[痛苦]", 2131230906);
+        EMOTIONS.put("[惊吓]", 2131230907);
+        EMOTIONS.put("[害怕]", 2131230908);
+        EMOTIONS.put("[懊悔]", 2131230909);
+        EMOTIONS.put("[轻松]", 2131230910);
+        EMOTIONS.put("[惊讶]", 2131230911);
+        EMOTIONS.put("[希望]", 2131230912);
+        EMOTIONS.put("[得意]", 2131230913);
+        EMOTIONS.put("[同情]", 2131230914);
+        EMOTIONS.put("[愤恨]", 2131230916);
+        EMOTIONS.put("[可爱]", 2131230917);
+        EMOTIONS.put("[责备]", 2131230918);
+        EMOTIONS.put("[恐惧]", 2131230919);
+        EMOTIONS.put("[厌恶]", 2131230920);
+        EMOTIONS.put("[满足]", 2131230921);
+        EMOTIONS.put("[傲慢]", 2131230922);
+        EMOTIONS.put("[羞愧]", 2131230923);
+        EMOTIONS.put("[爱]", 2131230924);
+        EMOTIONS.put("[点赞]", 2131230925);
+        EMOTIONS.put("[许愿]", 2131230927);
+    }
+
+    @Value("${ip.python" +
+            "Server}") String setPythonServer(String pythonServer){
         return ChatServer.pythonServer = pythonServer;
     }
 
@@ -63,8 +105,14 @@ public class ChatServer {
     @Autowired ChatsMapper setChatsMapper(ChatsMapper chatsMapper){
         return ChatServer.chatsMapper = chatsMapper;
     }
-
     static ChatsMapper chatsMapper;
+
+    @Autowired
+    TodoMapper setTodoMapper(TodoMapper todoMapper){
+        return ChatServer.todoMapper = todoMapper;
+    }
+
+    static TodoMapper todoMapper;
 
     /**
      * 连接成功方法
@@ -118,8 +166,7 @@ public class ChatServer {
             //获取消息类型
             int type =  clientJsonObject.getIntValue("type");
             if (type == 0){
-                // 保存文本消息
-                chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0);
+
                 //将消息封装成json格式
                 JSONObject messageJsonObject = new JSONObject();
                 messageJsonObject.put("type", "text");
@@ -152,21 +199,47 @@ public class ChatServer {
                 String rec = new String(data,0,len);
                 JSONObject recJsonObject = JSONObject.parseObject(rec);
                 String recData = recJsonObject.getString("data");
+                String emotion = recJsonObject.getString("emotion");
+                String operate = recJsonObject.getString("operate");
+                JSONObject operateJsonObject = JSONObject.parseObject(operate);
+                String operateType = operateJsonObject.getString("type");
+
+                if (operateType.equals("todo")){
+                    String date = operateJsonObject.getString("date");
+                    String name = operateJsonObject.getString("name");
+                    Todo todo = new Todo();
+                    Timestamp timestamp = Timestamp.valueOf(date);
+                    todo.setDate(timestamp);
+                    todo.setName(name);
+                    todo.setId(Integer.parseInt(userId));
+                    todo.setIsfinished(0);
+                    todoMapper.insert(todo);
+                } else if (operateType.equals("diary")) {
+
+                }
+                //判断情绪是否在情绪列表中
+                if (!EMOTIONS.containsKey(emotion)) {
+                    emotion = "-1";
+                }
+
                 //text为utf-8字符，解码
                 String recText = new String(recData.getBytes("utf-8"), "utf-8");
                 log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
 
                 //将获取到的信息保存到数据库
-                chatsMapper.insertChat(Integer.parseInt(userId), recText, 0, 1);
+                chatsMapper.insertChat(Integer.parseInt(userId), recText, 0, 1, null);
                 //将获取到的消息发送给接收端
                 JSONObject serverJsonObject = new JSONObject();
                 serverJsonObject.put("type", 0);
                 serverJsonObject.put("message", recText);
                 sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
+                log.info("emotion:"+emotion);
+                // 保存文本消息
+                chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0, emotion);
+
 
             } else if (type == 1) {
-                // 保存图片消息
-                chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0);
+
                 //将消息封装成json格式
                 JSONObject messageJsonObject = new JSONObject();
                 messageJsonObject.put("type", "img");
@@ -199,20 +272,74 @@ public class ChatServer {
                 String rec = new String(data,0,len);
                 JSONObject recJsonObject = JSONObject.parseObject(rec);
                 String recData = recJsonObject.getString("data");
+                String emotion = recJsonObject.getString("emotion");
                 //text为utf-8字符，解码
                 String recText = new String(recData.getBytes("utf-8"), "utf-8");
                 log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
-
+                //判断情绪是否在情绪列表中
+                if (!EMOTIONS.containsKey(emotion)) {
+                    emotion = "-1";
+                }
                 //将获取到的信息保存到数据库
-                chatsMapper.insertChat(Integer.parseInt(userId), recText, 0, 1);
+                chatsMapper.insertChat(Integer.parseInt(userId), recText, 0, 1, null);
+                // 保存图片消息
+                chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0, emotion);
                 //将获取到的消息发送给接收端
                 JSONObject serverJsonObject = new JSONObject();
                 serverJsonObject.put("type", 0);
                 serverJsonObject.put("message", recText);
                 sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
             } else if (type == 2) {
-                // 保存音频消息
-                chatsMapper.insertChatWithAudio(Integer.parseInt(userId), clientMessage, type, 0, audioTime);
+
+                //将消息封装成json格式
+                JSONObject messageJsonObject = new JSONObject();
+                messageJsonObject.put("type", "voice");
+                messageJsonObject.put("ID", Integer.parseInt(userId));
+                messageJsonObject.put("data", clientMessage);
+                messageJsonObject.put("firstConnect", firstConnected);
+
+                //socket将clientMessage发送给服务器
+                BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
+                try {
+                    bos.write(messageJsonObject.toJSONString().getBytes());
+                    firstConnected = false;
+                    bos.flush();
+                } catch(SocketException e) {
+                    System.out.println("服务器已断开");
+                    socket = new Socket(pythonServer, 12345);
+                    bos = new BufferedOutputStream(socket.getOutputStream());
+                    System.out.println("重新连接成功");
+                    messageJsonObject.put("firstConnect", true);
+                    bos.write(messageJsonObject.toJSONString().getBytes());
+                    firstConnected = false;
+                    bos.flush();
+                }
+
+                // 读取服务器上的响应数据
+                BufferedInputStream bis1 = new BufferedInputStream(socket.getInputStream());
+                byte[] data = new byte[10240];
+                int len = bis1.read(data);
+                String rec = new String(data,0,len);
+                JSONObject recJsonObject = JSONObject.parseObject(rec);
+                String recData = recJsonObject.getString("data");
+                String emotion = recJsonObject.getString("emotion");
+                //text为utf-8字符，解码
+                String recText = new String(recData.getBytes("utf-8"), "utf-8");
+                log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
+
+                //判断情绪是否在情绪列表中
+                if (!EMOTIONS.containsKey(emotion)) {
+                    emotion = "-1";
+                }
+                //将获取到的信息保存到数据库
+                chatsMapper.insertChat(Integer.parseInt(userId), recText, 0, 1, null);
+                // 保存图片消息
+                chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0, emotion);
+                //将获取到的消息发送给接收端
+                JSONObject serverJsonObject = new JSONObject();
+                serverJsonObject.put("type", 0);
+                serverJsonObject.put("message", recText);
+                sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
             }
 
 

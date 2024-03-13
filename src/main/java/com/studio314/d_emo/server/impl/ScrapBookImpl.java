@@ -2,8 +2,10 @@ package com.studio314.d_emo.server.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.studio314.d_emo.Other.Cards;
+import com.studio314.d_emo.mapper.ChatsMapper;
 import com.studio314.d_emo.mapper.TreeHoleCardMapper;
 import com.studio314.d_emo.mapper.UserMapper;
+import com.studio314.d_emo.pojo.Chats;
 import com.studio314.d_emo.pojo.TreeHoleCard;
 import com.studio314.d_emo.server.ScrapBookServer;
 import com.studio314.d_emo.Other.Statistic;
@@ -24,6 +26,8 @@ public class ScrapBookImpl implements ScrapBookServer {
     TreeHoleCardMapper treeHoleCardMapper;
     @Autowired
     UserMapper userMapper;
+    @Autowired
+    ChatsMapper chatsMapper;
 
     @Override
     public void insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal, int userID) {
@@ -148,15 +152,22 @@ public class ScrapBookImpl implements ScrapBookServer {
     }
 
     @Override
-    public List<TreeHoleCard> getADayTreeHoleCard(int userId) {
-        //获取当天的树洞卡片
-        LocalDate currentDate = LocalDate.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        String currentDateStr = currentDate.format(formatter);
+    public List<TreeHoleCard> getADayTreeHoleCard(int userId, String date) {
+//        //获取当天的树洞卡片
+//        LocalDate currentDate = LocalDate.now();
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+//        String currentDateStr = currentDate.format(formatter);
+//        LambdaQueryWrapper<TreeHoleCard> wrapper = new LambdaQueryWrapper<TreeHoleCard>();
+//        wrapper.eq(TreeHoleCard::getUserId, userId);
+//        // 时间大于等于当天的0点
+//        wrapper.ge(TreeHoleCard::getDate, currentDateStr);
+//        List<TreeHoleCard> treeHoleCards = treeHoleCardMapper.selectList(wrapper);
+//        log.info("【ScrapBookImpl】getADayTreeHoleCard: " + treeHoleCards);
+        // 获取date时间的树洞卡片
         LambdaQueryWrapper<TreeHoleCard> wrapper = new LambdaQueryWrapper<TreeHoleCard>();
         wrapper.eq(TreeHoleCard::getUserId, userId);
-        // 时间大于等于当天的0点
-        wrapper.ge(TreeHoleCard::getDate, currentDateStr);
+        // 时间大于等于date的0点
+        wrapper.ge(TreeHoleCard::getDate, date);
         List<TreeHoleCard> treeHoleCards = treeHoleCardMapper.selectList(wrapper);
         log.info("【ScrapBookImpl】getADayTreeHoleCard: " + treeHoleCards);
         return treeHoleCards;
@@ -170,7 +181,21 @@ public class ScrapBookImpl implements ScrapBookServer {
         wrapper.eq(TreeHoleCard::getUserId, userId);
         List<TreeHoleCard> treeHoleCards = treeHoleCardMapper.selectList(wrapper);
         return treeHoleCards;
+    }
 
+    @Override
+    public String getScrapBookEmotion(int userId) {
+        //获取用户最近的一条聊天的emotion
+        LambdaQueryWrapper<Chats> wrapper = new LambdaQueryWrapper<Chats>();
+        wrapper.eq(Chats::getSenderID, userId);
+        wrapper.eq(Chats::getIsReceiver, 0);
+        wrapper.orderByDesc(Chats::getSendTime);
+        wrapper.last("limit 1");
+        Chats chats = chatsMapper.selectOne(wrapper);
+        if (chats == null || chats.getEmotion() == null){
+            return "";
+        }
+        return chats.getEmotion();
     }
 
 }

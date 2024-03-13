@@ -26,4 +26,6 @@ public class Chats {
     int isReceiver;
     @TableField("audioTime")
     int audioTime;
+    @TableField("emotion")
+    String emotion;
 }

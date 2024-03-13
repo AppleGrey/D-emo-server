@@ -45,7 +45,12 @@ public class TreeHoleCardController {
     }
 
     @GetMapping("/getADayTreeHoleCard")
-    public Result getADayTreeHoleCard(int userId) {
-        return Result.success(scrapBookServer.getADayTreeHoleCard(userId));
+    public Result getADayTreeHoleCard(int userId, String date) {
+        return Result.success(scrapBookServer.getADayTreeHoleCard(userId, date));
+    }
+
+    @GetMapping("/getScrapBookEmotion")
+    public Result getScrapBookEmotion(int userId) {
+        return Result.success(scrapBookServer.getScrapBookEmotion(userId));
     }
 }
