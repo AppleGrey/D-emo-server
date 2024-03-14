@@ -234,10 +234,11 @@ public class ChatServer {
                 } else if (operateType.equals("diary")) {
 
                 }
-                log.info("emotion:"+emotion);
+//                log.info("emotionaaaaaaa:"+emotion);
                 //判断情绪是否在情绪列表中
                 if (EMOTIONS.containsKey(emotion)) {
                     emotion = EMOTIONS.get(emotion).toString();
+//                    log.info("转换后emotion：" + emotion);
                 }else {
                     emotion = "-1";
                 }

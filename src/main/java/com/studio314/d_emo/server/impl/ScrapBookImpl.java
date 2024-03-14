@@ -194,6 +194,8 @@ public class ScrapBookImpl implements ScrapBookServer {
         wrapper.eq(Chats::getIsReceiver, 0);
         // emotion 不为空
         wrapper.isNotNull(Chats::getEmotion);
+        // emotion 不为 -1
+        wrapper.ne(Chats::getEmotion, "-1");
         wrapper.orderByDesc(Chats::getSendTime);
         wrapper.last("limit 1");
         Chats chats = chatsMapper.selectOne(wrapper);
