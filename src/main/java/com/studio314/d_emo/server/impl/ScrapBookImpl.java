@@ -192,6 +192,8 @@ public class ScrapBookImpl implements ScrapBookServer {
         LambdaQueryWrapper<Chats> wrapper = new LambdaQueryWrapper<Chats>();
         wrapper.eq(Chats::getSenderID, userId);
         wrapper.eq(Chats::getIsReceiver, 0);
+        // emotion 不为空
+        wrapper.isNotNull(Chats::getEmotion);
         wrapper.orderByDesc(Chats::getSendTime);
         wrapper.last("limit 1");
         Chats chats = chatsMapper.selectOne(wrapper);

@@ -8,6 +8,7 @@ import com.studio314.d_emo.mapper.SummaryMapper;
 import com.studio314.d_emo.mapper.TreeHoleCardMapper;
 import com.studio314.d_emo.pojo.Chats;
 import com.studio314.d_emo.pojo.SleepCard;
+import com.studio314.d_emo.pojo.Summary;
 import com.studio314.d_emo.pojo.TreeHoleCard;
 import com.studio314.d_emo.server.SummaryServer;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,7 @@ public class SummaryServerImpl implements SummaryServer {
 //    }
 
     @Override
-    public String getSummary(List<SleepCard> sleepCards) throws IOException {
+    public Summary getSummary(List<SleepCard> sleepCards) throws IOException {
         // 获取用户最近七天树洞卡片的文本内容
         LocalDate currentDate = LocalDate.now();
         LocalDate before7Day = currentDate.minusDays(7);
@@ -62,7 +63,7 @@ public class SummaryServerImpl implements SummaryServer {
         wrapper1.orderByDesc(Chats::getSendTime);
         wrapper1.last("limit 20");
         List<Chats> chats = chatsMapper.selectList(wrapper1);
-        log.info("chat消息：");
+//        log.info("chat消息：");
         for (Chats chat : chats) {
             log.info(chat.toString());
         }
@@ -83,10 +84,10 @@ public class SummaryServerImpl implements SummaryServer {
                 Chats chat = chats.get(i);
                 if (chat.getIsReceiver() == 0){
                     bufferedWriter.write("{user: " + chat.getMessage() + ",");
-                    log.info("{user: " + chat.getMessage() + ",");
+//                    log.info("{user: " + chat.getMessage() + ",");
                 } else {
-                    bufferedWriter.write("AI: " + chat.getMessage() + "},");
-                    log.info("AI: " + chat.getMessage() + "},");
+                    bufferedWriter.write("小D: " + chat.getMessage() + "},");
+//                    log.info("AI: " + chat.getMessage() + "},");
                 }
                 bufferedWriter.newLine();
             }
@@ -178,9 +179,29 @@ public class SummaryServerImpl implements SummaryServer {
 //        log.info("rec:"+rec);
         JSONObject recJsonObject = JSONObject.parseObject(rec);
         String recData = recJsonObject.getString("data");
+        String emotion = recJsonObject.getString("emotion");
         //text为utf-8字符，解码
         String recText = new String(recData.getBytes("utf-8"), "utf-8");
+        //关闭流
+        bos.close();
+        bis1.close();
+        socket.close();
         log.info("recText:"+recText);
-        return recText;
+
+        // 将情绪写入数据库
+        Summary summary = new Summary();
+        summary.setUserid(sleepCards.get(0).getUid());
+        log.info("emotion:"+emotion);
+        if (emotion.equals("['消极']")) {
+            summary.setMood(2131230914);
+        } else if (emotion.equals("['积极']")) {
+            summary.setMood(2131230932);
+        } else {
+            summary.setMood(2131230912);
+        }
+        summary.setText(recText);
+//        summaryMapper.insert(summary);
+
+        return summary;
     }
 }
