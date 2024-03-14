@@ -28,4 +28,6 @@ public interface ScrapBookServer {
     List<TreeHoleCard> getADayTreeHoleCard(int userId, String date);
 
     String getScrapBookEmotion(int userId);
+
+
 }

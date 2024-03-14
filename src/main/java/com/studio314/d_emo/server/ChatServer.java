@@ -183,12 +183,13 @@ public class ChatServer {
                 messageJsonObject.put("firstConnect", firstConnected);
 
                 //socket将clientMessage发送给服务器
-                BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
+                BufferedOutputStream bos;
                 try {
+                    bos = new BufferedOutputStream(socket.getOutputStream());
                     bos.write(messageJsonObject.toJSONString().getBytes());
                     firstConnected = false;
                     bos.flush();
-                } catch(SocketException e) {
+                } catch(Exception e) {
                     log.info("服务器已断开");
                     socket = new Socket(pythonServer, 12345);
                     bos = new BufferedOutputStream(socket.getOutputStream());
@@ -264,12 +265,13 @@ public class ChatServer {
                 messageJsonObject.put("firstConnect", firstConnected);
 
                 //socket将clientMessage发送给服务器
-                BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
+                BufferedOutputStream bos;
                 try {
+                    bos = new BufferedOutputStream(socket.getOutputStream());
                     bos.write(messageJsonObject.toJSONString().getBytes());
                     firstConnected = false;
                     bos.flush();
-                } catch(SocketException e) {
+                } catch(Exception e) {
                     System.out.println("服务器已断开");
                     socket = new Socket(pythonServer, 12345);
                     bos = new BufferedOutputStream(socket.getOutputStream());
@@ -412,12 +414,13 @@ public class ChatServer {
 
 
                 //socket将clientMessage发送给服务器
-                BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
+                BufferedOutputStream bos;
                 try {
+                    bos = new BufferedOutputStream(socket.getOutputStream());
                     bos.write(messageJsonObject.toJSONString().getBytes());
                     firstConnected = false;
                     bos.flush();
-                } catch(SocketException e) {
+                } catch(Exception e) {
                     System.out.println("服务器已断开");
                     socket = new Socket(pythonServer, 12345);
                     bos = new BufferedOutputStream(socket.getOutputStream());
