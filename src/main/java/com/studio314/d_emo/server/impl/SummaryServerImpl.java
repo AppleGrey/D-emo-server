@@ -180,6 +180,14 @@ public class SummaryServerImpl implements SummaryServer {
         JSONObject recJsonObject = JSONObject.parseObject(rec);
         String recData = recJsonObject.getString("data");
         String emotion = recJsonObject.getString("emotion");
+
+        // 使用replace去除 [ ] 符号
+        emotion = emotion.replace("[", "").replace("]", "");
+        // 使用replace去除 ' 符号 和 ' 符号
+        emotion = emotion.replace("'", "").replace("'", "");
+        // 使用replace去除 " 符合 和 " 符号
+        emotion = emotion.replace("\"", "").replace("\"", "");
+
         //text为utf-8字符，解码
         String recText = new String(recData.getBytes("utf-8"), "utf-8");
         //关闭流
