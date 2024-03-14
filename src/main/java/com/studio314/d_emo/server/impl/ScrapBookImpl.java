@@ -171,6 +171,8 @@ public class ScrapBookImpl implements ScrapBookServer {
         wrapper.eq(TreeHoleCard::getUserId, userId);
         // 时间大于等于date的0点
         wrapper.ge(TreeHoleCard::getDate, date);
+        // 小于date的24点
+        wrapper.lt(TreeHoleCard::getDate, date + " 24:00:00");
         List<TreeHoleCard> treeHoleCards = treeHoleCardMapper.selectList(wrapper);
         log.info("【ScrapBookImpl】getADayTreeHoleCard: " + treeHoleCards);
         return treeHoleCards;
