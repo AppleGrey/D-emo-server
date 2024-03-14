@@ -50,36 +50,36 @@ public class ChatServer {
     public static Map<String, Integer> EMOTIONS = new LinkedHashMap<>();
 
     static {
-        EMOTIONS.put("高兴", 2131230904);
-        EMOTIONS.put("生气", 2131230915);
-        EMOTIONS.put("喜欢", 2131230926);
-        EMOTIONS.put("失望", 2131230928);
-        EMOTIONS.put("幸灾乐祸", 2131230929);
-        EMOTIONS.put("调皮", 2131230930);
-        EMOTIONS.put("折磨", 2131230931);
-        EMOTIONS.put("感激", 2131230932);
-        EMOTIONS.put("害羞", 2131230933);
-        EMOTIONS.put("憎恨", 2131230905);
-        EMOTIONS.put("痛苦", 2131230906);
-        EMOTIONS.put("惊吓", 2131230907);
-        EMOTIONS.put("害怕", 2131230908);
-        EMOTIONS.put("懊悔", 2131230909);
-        EMOTIONS.put("轻松", 2131230910);
-        EMOTIONS.put("惊讶", 2131230911);
-        EMOTIONS.put("希望", 2131230912);
-        EMOTIONS.put("得意", 2131230913);
-        EMOTIONS.put("同情", 2131230914);
-        EMOTIONS.put("愤恨", 2131230916);
-        EMOTIONS.put("可爱", 2131230917);
-        EMOTIONS.put("责备", 2131230918);
-        EMOTIONS.put("恐惧", 2131230919);
-        EMOTIONS.put("厌恶", 2131230920);
-        EMOTIONS.put("满足", 2131230921);
-        EMOTIONS.put("傲慢", 2131230922);
-        EMOTIONS.put("羞愧", 2131230923);
-        EMOTIONS.put("爱", 2131230924);
-        EMOTIONS.put("点赞", 2131230925);
-        EMOTIONS.put("许愿", 2131230927);
+        EMOTIONS.put("高兴", 2131230905);
+        EMOTIONS.put("生气", 2131230916);
+        EMOTIONS.put("喜欢", 2131230927);
+        EMOTIONS.put("失望", 2131230929);
+        EMOTIONS.put("幸灾乐祸", 2131230930);
+        EMOTIONS.put("调皮", 2131230931);
+        EMOTIONS.put("折磨", 2131230932);
+        EMOTIONS.put("感激", 2131230933);
+        EMOTIONS.put("害羞", 2131230934);
+        EMOTIONS.put("憎恨", 2131230906);
+        EMOTIONS.put("痛苦", 2131230907);
+        EMOTIONS.put("惊吓", 2131230908);
+        EMOTIONS.put("害怕", 2131230909);
+        EMOTIONS.put("懊悔", 2131230910);
+        EMOTIONS.put("轻松", 2131230911);
+        EMOTIONS.put("惊讶", 2131230912);
+        EMOTIONS.put("希望", 2131230913);
+        EMOTIONS.put("得意", 2131230914);
+        EMOTIONS.put("同情", 2131230915);
+        EMOTIONS.put("愤恨", 2131230917);
+        EMOTIONS.put("可爱", 2131230918);
+        EMOTIONS.put("责备", 2131230919);
+        EMOTIONS.put("恐惧", 2131230920);
+        EMOTIONS.put("厌恶", 2131230921);
+        EMOTIONS.put("满足", 2131230922);
+        EMOTIONS.put("傲慢", 2131230923);
+        EMOTIONS.put("羞愧", 2131230924);
+        EMOTIONS.put("爱", 2131230925);
+        EMOTIONS.put("点赞", 2131230926);
+        EMOTIONS.put("许愿", 2131230928);
     }
 
     @Value("${ip.python" +
