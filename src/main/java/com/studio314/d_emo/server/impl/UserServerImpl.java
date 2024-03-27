@@ -94,7 +94,8 @@ public class UserServerImpl implements UserServer {
         //注册
         User user1 = new User();
         user1.setMail(mail);
-        user1.setPassword(password);
+        String cpw = EncodeUtils.bCryptEncode(password);
+        user1.setPassword(cpw);
         user1.setUName(name);
         userMapper.register(user1);
         return user1.getID();

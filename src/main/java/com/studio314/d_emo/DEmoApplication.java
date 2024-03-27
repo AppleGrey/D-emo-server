@@ -9,7 +9,7 @@ import org.springframework.web.socket.config.annotation.EnableWebSocket;
 @SpringBootApplication(exclude = {SecurityAutoConfiguration.class })
 @EnableWebSocket
 @MapperScan(basePackages = "com.studio314.d_emo.mapper")
-public class DEmoApplication {
+public class  DEmoApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(DEmoApplication.class, args);

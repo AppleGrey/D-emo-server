@@ -9,6 +9,8 @@ spring:
     template-resolver-order: 1
 
   mail:
+    port: 465
+    protocol: smtps
     # SMTP服务器，这个是QQ邮箱的  其他邮箱请另行百度
     host: smtp.qq.com
     # 发送验证码的邮箱
