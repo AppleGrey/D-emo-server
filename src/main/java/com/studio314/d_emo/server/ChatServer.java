@@ -170,6 +170,7 @@ public class ChatServer {
             String targetUserId = clientJsonObject.getString("userId");
             //获取消息内容
             String clientMessage = clientJsonObject.getString("content");
+            log.info("【websocket消息】 用户："+ userId + " 发送消息："+clientMessage);
             int audioTime = clientJsonObject.getIntValue("time");
             //获取消息类型
             int type =  clientJsonObject.getIntValue("type");
@@ -519,7 +520,7 @@ public class ChatServer {
                 serverJsonObject.put("message", recText);
                 sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
                 // 保存音频消息
-                chatsMapper.insertChatWithAudio(Integer.parseInt(userId), clientMessage, type, 0, audioTime);
+                chatsMapper.insertChatWithAudio(Integer.parseInt(userId), audioUrl, type, 0, audioTime);
                 //将获取到的信息保存到数据库
                 chatsMapper.insertChat(Integer.parseInt(userId), recText, 0, 1, null);
             }
