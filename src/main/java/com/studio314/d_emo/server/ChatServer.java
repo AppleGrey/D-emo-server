@@ -21,6 +21,7 @@ import com.google.gson.JsonObject;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
@@ -122,6 +123,79 @@ public class ChatServer {
 
     static TodoMapper todoMapper;
 
+    private static final int HEARTBEAT_INTERVAL = 1000; // 心跳间隔时间，单位：毫秒
+
+    private final Object lock = new Object(); // 用于线程同步的锁对象
+
+    private class HeartbeatThread extends Thread {
+        @Override
+        public void run() {
+            try {
+                OutputStream outputStream = socket.getOutputStream();
+                while (true) {
+                    synchronized (lock) {
+                        // 检查是否需要建立连接
+                        if (socket == null || socket.isClosed()) {
+                            // 创建新的Socket连接
+                            socket = new Socket(pythonServer, 12345);
+                            outputStream = socket.getOutputStream();
+//                            System.out.println("建立连接");
+                        }
+
+                        // 发送心跳包数据
+                        //将消息封装成json格式
+                        JSONObject heartJsonObject = new JSONObject();
+                        heartJsonObject.put("type", "heart");
+                        heartJsonObject.put("firstConnect", firstConnected);
+                        outputStream.write(heartJsonObject.toJSONString().getBytes());
+                        outputStream.flush();
+//                        log.info("心跳发送成功...");
+
+                        BufferedInputStream bis1 = new BufferedInputStream(socket.getInputStream());
+                        byte[] data = new byte[10240];
+                        int len = bis1.read(data);
+                        String rec = new String(data,0,len);
+//                log.info("rec:"+rec);
+                        if (rec.equals("success")) {
+//                            log.info("心跳包收到回复...");
+                        } else {
+                            log.info("心跳包收到回复异常,尝试重连");
+                            // 关闭旧的Socket连接
+                            try {
+                                if (socket != null && !socket.isClosed()) {
+                                    socket.close();
+                                    // 创建新的Socket连接
+                                    socket = new Socket(pythonServer, 12345);
+                                    outputStream = socket.getOutputStream();
+                                    log.info("与服务器重新建立连接成功");
+                                }
+                            } catch (IOException ex) {
+                                ex.printStackTrace();
+                            }
+                        }
+
+                    }
+                    // 等待一段时间
+                    Thread.sleep(HEARTBEAT_INTERVAL);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                log.info("心跳发送失败,尝试重新连接...");
+                // 关闭旧的Socket连接
+                try {
+                    if (socket != null && !socket.isClosed()) {
+                        socket.close();
+                    }
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
     /**
      * 连接成功方法
      * @param session 连接会话
@@ -136,7 +210,10 @@ public class ChatServer {
             sessionPool.put(userId, session);
             log.info("【websocket消息】 用户：" + userId + " 加入连接...");
 
-//            socket = new Socket(pythonServer, 12345);
+            // 创建Socket连接
+            socket = new Socket(pythonServer, 12345);
+            // 启动心跳线程
+            new HeartbeatThread().start();
 //            log.info("【websocket消息】 用户：" + userId + " 连接服务器成功...");
         } catch (Exception e) {
             log.error("---------------WebSocket连接异常---------------");
@@ -162,6 +239,7 @@ public class ChatServer {
         try {
             if (socket == null) {
                 socket = new Socket(pythonServer, 12345);
+                socket.setKeepAlive(true);
                 log.info("【websocket消息】 用户：" + userId + " 连接服务器成功...");
             }
             //将Body解析
@@ -170,7 +248,7 @@ public class ChatServer {
             String targetUserId = clientJsonObject.getString("userId");
             //获取消息内容
             String clientMessage = clientJsonObject.getString("content");
-            log.info("【websocket消息】 用户："+ userId + " 发送消息："+clientMessage);
+//            log.info("【websocket消息】 用户："+ userId + " 发送消息："+clientMessage);
             int audioTime = clientJsonObject.getIntValue("time");
             //获取消息类型
             int type =  clientJsonObject.getIntValue("type");
@@ -183,23 +261,27 @@ public class ChatServer {
                 messageJsonObject.put("data", clientMessage);
                 messageJsonObject.put("firstConnect", firstConnected);
 
-                //socket将clientMessage发送给服务器
-                BufferedOutputStream bos;
-                try {
-                    bos = new BufferedOutputStream(socket.getOutputStream());
-                    bos.write(messageJsonObject.toJSONString().getBytes());
-                    firstConnected = false;
-                    bos.flush();
-                } catch(Exception e) {
-                    log.info("服务器已断开");
-                    socket = new Socket(pythonServer, 12345);
-                    bos = new BufferedOutputStream(socket.getOutputStream());
-                    log.info("重新连接成功");
-                    messageJsonObject.put("firstConnect", true);
-                    bos.write(messageJsonObject.toJSONString().getBytes());
-                    firstConnected = false;
-                    bos.flush();
+                // 防止心跳与消息发送冲突
+                synchronized (lock) {
+                    //socket将clientMessage发送给服务器
+                    BufferedOutputStream bos;
+                    try {
+                        bos = new BufferedOutputStream(socket.getOutputStream());
+                        bos.write(messageJsonObject.toJSONString().getBytes());
+                        firstConnected = false;
+                        bos.flush();
+                    } catch(Exception e) {
+                        log.info("服务器已断开");
+                        socket = new Socket(pythonServer, 12345);
+                        bos = new BufferedOutputStream(socket.getOutputStream());
+                        log.info("重新连接成功");
+                        messageJsonObject.put("firstConnect", true);
+                        bos.write(messageJsonObject.toJSONString().getBytes());
+                        firstConnected = false;
+                        bos.flush();
+                    }
                 }
+
 //                socket.shutdownOutput();
 
                 // 读取服务器上的响应数据
@@ -207,7 +289,7 @@ public class ChatServer {
                 byte[] data = new byte[10240];
                 int len = bis1.read(data);
                 String rec = new String(data,0,len);
-                log.info("rec:"+rec);
+//                log.info("rec:"+rec);
                 JSONObject recJsonObject = JSONObject.parseObject(rec);
                 String recData = recJsonObject.getString("data");
                 String emotion = recJsonObject.getString("emotion");
@@ -219,16 +301,16 @@ public class ChatServer {
                 emotion = emotion.replace("\"", "").replace("\"", "");
 
                 String operator = recJsonObject.getString("operator");
-                log.info("operator:"+operator);
+//                log.info("operator:"+operator);
                 JSONObject operateJsonObject = JSONObject.parseObject(operator);
                 String operateType = operateJsonObject.getString("type");
 
                 if (operateType.equals("todo")){
                     JSONObject todoJsonObject = JSONObject.parseObject(operateJsonObject.getString("data"));
                     String date = todoJsonObject.getString("time");
-                    log.info("date:"+date);
+//                    log.info("date:"+date);
                     String name = todoJsonObject.getString("str");
-                    log.info("name:"+name);
+//                    log.info("name:"+name);
                     Todo todo = new Todo();
 //                    Timestamp timestamp = Timestamp.valueOf(date);
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -251,7 +333,7 @@ public class ChatServer {
                 emotion = emotion.replace("\"", "").replace("\"", "");
 
 
-                log.info("emotionaaaaaaa:"+emotion);
+//                log.info("emotionaaaaaaa:"+emotion);
                 //判断情绪是否在情绪列表中
                 if (EMOTIONS.containsKey(emotion)) {
                     emotion = EMOTIONS.get(emotion).toString();
@@ -262,7 +344,7 @@ public class ChatServer {
 
                 //text为utf-8字符，解码
                 String recText = new String(recData.getBytes("utf-8"), "utf-8");
-                log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
+//                log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
 
 
                 //将获取到的消息发送给接收端
@@ -270,7 +352,7 @@ public class ChatServer {
                 serverJsonObject.put("type", 0);
                 serverJsonObject.put("message", recText);
                 sendMoreMessage(new String[]{targetUserId} ,  JSONObject.toJSONString(serverJsonObject));
-                log.info("emotion:"+emotion);
+//                log.info("emotion:"+emotion);
                 // 保存文本消息
                 chatsMapper.insertChat(Integer.parseInt(userId), clientMessage, type, 0, emotion);
                 //将获取到的信息保存到数据库
@@ -285,23 +367,27 @@ public class ChatServer {
                 messageJsonObject.put("data", clientMessage);
                 messageJsonObject.put("firstConnect", firstConnected);
 
-                //socket将clientMessage发送给服务器
-                BufferedOutputStream bos;
-                try {
-                    bos = new BufferedOutputStream(socket.getOutputStream());
-                    bos.write(messageJsonObject.toJSONString().getBytes());
-                    firstConnected = false;
-                    bos.flush();
-                } catch(Exception e) {
-                    System.out.println("服务器已断开");
-                    socket = new Socket(pythonServer, 12345);
-                    bos = new BufferedOutputStream(socket.getOutputStream());
-                    System.out.println("重新连接成功");
-                    messageJsonObject.put("firstConnect", true);
-                    bos.write(messageJsonObject.toJSONString().getBytes());
-                    firstConnected = false;
-                    bos.flush();
+                synchronized (lock){
+                    //socket将clientMessage发送给服务器
+                    BufferedOutputStream bos;
+                    try {
+                        bos = new BufferedOutputStream(socket.getOutputStream());
+                        bos.write(messageJsonObject.toJSONString().getBytes());
+                        firstConnected = false;
+                        bos.flush();
+                    } catch(Exception e) {
+                        System.out.println("服务器已断开");
+                        socket = new Socket(pythonServer, 12345);
+                        bos = new BufferedOutputStream(socket.getOutputStream());
+                        System.out.println("重新连接成功");
+                        messageJsonObject.put("firstConnect", true);
+                        bos.write(messageJsonObject.toJSONString().getBytes());
+                        firstConnected = false;
+                        bos.flush();
+                    }
                 }
+
+
 //                socket.shutdownOutput();
 
                 // 读取服务器上的响应数据
@@ -322,7 +408,7 @@ public class ChatServer {
 
                 //text为utf-8字符，解码
                 String recText = new String(recData.getBytes("utf-8"), "utf-8");
-                log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
+//                log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
                 //判断情绪是否在情绪列表中
                 if (EMOTIONS.containsKey(emotion)) {
                     emotion = EMOTIONS.get(emotion).toString();
@@ -443,32 +529,34 @@ public class ChatServer {
                 messageJsonObject.put("data", clientMessage);
                 messageJsonObject.put("firstConnect", firstConnected);
 
-
-
-                //socket将clientMessage发送给服务器
-                BufferedOutputStream bos;
-                try {
-                    bos = new BufferedOutputStream(socket.getOutputStream());
-                    bos.write(messageJsonObject.toJSONString().getBytes());
-                    firstConnected = false;
-                    bos.flush();
-                } catch(Exception e) {
-                    System.out.println("服务器已断开");
-                    socket = new Socket(pythonServer, 12345);
-                    bos = new BufferedOutputStream(socket.getOutputStream());
-                    System.out.println("重新连接成功");
-                    messageJsonObject.put("firstConnect", true);
-                    bos.write(messageJsonObject.toJSONString().getBytes());
-                    firstConnected = false;
-                    bos.flush();
+                // 防止心跳与消息发送冲突
+                synchronized (lock){
+                    //socket将clientMessage发送给服务器
+                    BufferedOutputStream bos;
+                    try {
+                        bos = new BufferedOutputStream(socket.getOutputStream());
+                        bos.write(messageJsonObject.toJSONString().getBytes());
+                        firstConnected = false;
+                        bos.flush();
+                    } catch(Exception e) {
+                        System.out.println("服务器已断开");
+                        socket = new Socket(pythonServer, 12345);
+                        bos = new BufferedOutputStream(socket.getOutputStream());
+                        System.out.println("重新连接成功");
+                        messageJsonObject.put("firstConnect", true);
+                        bos.write(messageJsonObject.toJSONString().getBytes());
+                        firstConnected = false;
+                        bos.flush();
+                    }
                 }
+
 
                 // 读取服务器上的响应数据
                 BufferedInputStream bis1 = new BufferedInputStream(socket.getInputStream());
                 byte[] data = new byte[10240];
                 int len = bis1.read(data);
                 String rec = new String(data,0,len);
-                log.info("rec:"+rec);
+//                log.info("rec:"+rec);
                 JSONObject recJsonObject = JSONObject.parseObject(rec);
                 String recData = recJsonObject.getString("data");
                 String emotion = recJsonObject.getString("emotion");
@@ -481,16 +569,16 @@ public class ChatServer {
                 emotion = emotion.replace("\"", "").replace("\"", "");
 
                 String operator = recJsonObject.getString("operator");
-                log.info("operator:"+operator);
+//                log.info("operator:"+operator);
                 JSONObject operateJsonObject = JSONObject.parseObject(operator);
                 String operateType = operateJsonObject.getString("type");
 
                 if (operateType.equals("todo")){
                     JSONObject todoJsonObject = JSONObject.parseObject(operateJsonObject.getString("data"));
                     String date = todoJsonObject.getString("time");
-                    log.info("date:"+date);
+//                    log.info("date:"+date);
                     String name = todoJsonObject.getString("str");
-                    log.info("name:"+name);
+//                    log.info("name:"+name);
                     Todo todo = new Todo();
 //                    Timestamp timestamp = Timestamp.valueOf(date);
                     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -513,7 +601,7 @@ public class ChatServer {
 
                 //text为utf-8字符，解码
                 String recText = new String(recData.getBytes("utf-8"), "utf-8");
-                log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
+//                log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
                 //将获取到的消息发送给接收端
                 JSONObject serverJsonObject = new JSONObject();
                 serverJsonObject.put("type", 0);
