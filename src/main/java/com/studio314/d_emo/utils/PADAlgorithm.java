@@ -6,30 +6,30 @@ import java.util.Map;
 public class PADAlgorithm {
 
     static Map<EmotionType, Integer> emojiMap = new HashMap<EmotionType, Integer>() {{
-        put(EmotionType.JOY_HIGH, 1);
-        put(EmotionType.JOY_MEDIUM, 21);
-        put(EmotionType.JOY_LOW, 17);
-        put(EmotionType.DISTRESS_HIGH, 19);
-        put(EmotionType.DISTRESS_MEDIUM, 11);
-        put(EmotionType.DISTRESS_LOW, 27);
-        put(EmotionType.CALM_HIGH, 17);
-        put(EmotionType.CALM_MEDIUM, 8);
-        put(EmotionType.CALM_LOW, 9);
-        put(EmotionType.ANGER_HIGH, 2);
-        put(EmotionType.ANGER_MEDIUM, 10);
-        put(EmotionType.ANGER_LOW, 22);
-        put(EmotionType.FEAR_HIGH, 24);
-        put(EmotionType.FEAR_MEDIUM, 12);
-        put(EmotionType.FEAR_LOW, 20);
-        put(EmotionType.SADNESS_HIGH, 14);
-        put(EmotionType.SADNESS_MEDIUM, 13);
-        put(EmotionType.SADNESS_LOW, 23);
-        put(EmotionType.VIGOR_HIGH, 15);
-        put(EmotionType.VIGOR_MEDIUM, 18);
-        put(EmotionType.VIGOR_LOW, 6);
-        put(EmotionType.SLEEPINESS_HIGH, 7);
-        put(EmotionType.SLEEPINESS_MEDIUM, 12);
-        put(EmotionType.SLEEPINESS_LOW, 16);
+        put(EmotionType.JOY_HIGH, 2131230905);
+        put(EmotionType.JOY_MEDIUM, 2131230918);
+        put(EmotionType.JOY_LOW, 2131230913);
+        put(EmotionType.DISTRESS_HIGH, 2131230915);
+        put(EmotionType.DISTRESS_MEDIUM, 2131230907);
+        put(EmotionType.DISTRESS_LOW, 2131230924);
+        put(EmotionType.CALM_HIGH, 2131230913);
+        put(EmotionType.CALM_MEDIUM, 2131230933);
+        put(EmotionType.CALM_LOW, 2131230934);
+        put(EmotionType.ANGER_HIGH, 2131230916);
+        put(EmotionType.ANGER_MEDIUM, 2131230906);
+        put(EmotionType.ANGER_LOW, 2131230919);
+        put(EmotionType.FEAR_HIGH, 2131230921);
+        put(EmotionType.FEAR_MEDIUM, 2131230908);
+        put(EmotionType.FEAR_LOW, 2131230917);
+        put(EmotionType.SADNESS_HIGH, 2131230910);
+        put(EmotionType.SADNESS_MEDIUM, 2131230909);
+        put(EmotionType.SADNESS_LOW, 2131230920);
+        put(EmotionType.VIGOR_HIGH, 2131230911);
+        put(EmotionType.VIGOR_MEDIUM, 2131230914);
+        put(EmotionType.VIGOR_LOW, 2131230931);
+        put(EmotionType.SLEEPINESS_HIGH, 2131230932);
+        put(EmotionType.SLEEPINESS_MEDIUM, 2131230908);
+        put(EmotionType.SLEEPINESS_LOW, 2131230912);
 
     }};
 
@@ -45,11 +45,44 @@ public class PADAlgorithm {
         SLEEPINESS_HIGH, SLEEPINESS_MEDIUM, SLEEPINESS_LOW
     }
 
-    public static int getEmoji(double pleasure, double stress, double heartRate, double sleepScore) {
+    public static int getEmoji(EmotionType emotion) {
+        return emojiMap.get(emotion);
+    }
+
+    public static String getEmotionString(EmotionType emotion) {
+        return switch (emotion) {
+            case JOY_HIGH -> "高兴";
+            case JOY_MEDIUM -> "愉快";
+            case JOY_LOW -> "开心";
+            case DISTRESS_HIGH -> "痛苦";
+            case DISTRESS_MEDIUM -> "焦虑";
+            case DISTRESS_LOW -> "烦躁";
+            case CALM_HIGH -> "平静";
+            case CALM_MEDIUM -> "轻松";
+            case CALM_LOW -> "安逸";
+            case ANGER_HIGH -> "愤怒";
+            case ANGER_MEDIUM -> "生气";
+            case ANGER_LOW -> "不满";
+            case FEAR_HIGH -> "恐惧";
+            case FEAR_MEDIUM -> "担忧";
+            case FEAR_LOW -> "害怕";
+            case SADNESS_HIGH -> "悲伤";
+            case SADNESS_MEDIUM -> "失落";
+            case SADNESS_LOW -> "沮丧";
+            case VIGOR_HIGH -> "活力";
+            case VIGOR_MEDIUM -> "兴奋";
+            case VIGOR_LOW -> "疲惫";
+            case SLEEPINESS_HIGH -> "困倦";
+            case SLEEPINESS_MEDIUM -> "昏昏欲睡";
+            case SLEEPINESS_LOW -> "疲劳";
+        };
+    }
+
+    public static EmotionType getEmotion(double pleasure, double stress, double heartRate, double sleepScore) {
         double arousal = mapToArousal(stress, heartRate);
         double dominance = mapToDominance(sleepScore);
         EmotionType emotionType = analyzeEmotion(pleasure, arousal, dominance);
-        return emojiMap.get(emotionType);
+        return emotionType;
     }
 
     public static EmotionType analyzeEmotion(double pleasure, double arousal, double dominance) {
