@@ -26,4 +26,5 @@ public class TreeHoleCard {
     int userId;
     @TableField("isPersonal")
     int isPersonal;
+    String comment;
 }
