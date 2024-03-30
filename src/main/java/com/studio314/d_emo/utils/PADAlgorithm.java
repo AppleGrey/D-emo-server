@@ -46,89 +46,89 @@ public class PADAlgorithm {
     }
 
     public static int getEmoji(double pleasure, double stress, double heartRate, double sleepScore) {
-        EmotionType emotionType = analyzeEmotion(pleasure, stress, heartRate, sleepScore);
+        double arousal = mapToArousal(stress, heartRate);
+        double dominance = mapToDominance(sleepScore);
+        EmotionType emotionType = analyzeEmotion(pleasure, arousal, dominance);
         return emojiMap.get(emotionType);
     }
 
-    public static EmotionType analyzeEmotion(double pleasure, double stress, double heartRate, double sleepScore) {
-        double arousal = mapToArousal(stress, heartRate);
-        double dominance = mapToDominance(sleepScore);
+    public static EmotionType analyzeEmotion(double pleasure, double arousal, double dominance) {
 
         EmotionType emotionType;
 
-        if (pleasure > 0.5) {
-            if (arousal > 0.5) {
-                if (dominance > 0.5) {
+        if (pleasure > 0.67) {
+            if (arousal > 0.67) {
+                if (dominance > 0.67) {
                     emotionType = EmotionType.JOY_HIGH;
-                } else if (dominance >= 0 && dominance <= 0.5) {
+                } else if (dominance >= 0.33) {
                     emotionType = EmotionType.JOY_MEDIUM;
                 } else {
                     emotionType = EmotionType.JOY_LOW;
                 }
-            } else if (arousal >= 0 && arousal <= 0.5) {
-                if (dominance > 0.5) {
+            } else if (arousal >= 0.33) {
+                if (dominance > 0.67) {
                     emotionType = EmotionType.CALM_HIGH;
-                } else if (dominance >= 0 && dominance <= 0.5) {
+                } else if (dominance >= 0.33) {
                     emotionType = EmotionType.CALM_MEDIUM;
                 } else {
                     emotionType = EmotionType.CALM_LOW;
                 }
             } else {
-                if (dominance > 0.5) {
+                if (dominance > 0.67) {
                     emotionType = EmotionType.SLEEPINESS_HIGH;
-                } else if (dominance >= 0 && dominance <= 0.5) {
+                } else if (dominance >= 0.33) {
                     emotionType = EmotionType.SLEEPINESS_MEDIUM;
                 } else {
                     emotionType = EmotionType.SLEEPINESS_LOW;
                 }
             }
-        } else if (pleasure >= 0 && pleasure <= 0.5) {
-            if (arousal > 0.5) {
-                if (dominance > 0.5) {
+        } else if (pleasure >= 0.33) {
+            if (arousal > 0.67) {
+                if (dominance > 0.67) {
                     emotionType = EmotionType.DISTRESS_HIGH;
-                } else if (dominance >= 0 && dominance <= 0.5) {
+                } else if (dominance >= 0.33) {
                     emotionType = EmotionType.DISTRESS_MEDIUM;
                 } else {
                     emotionType = EmotionType.DISTRESS_LOW;
                 }
-            } else if (arousal >= 0 && arousal <= 0.5) {
-                if (dominance > 0.5) {
+            } else if (arousal >= 0.33) {
+                if (dominance > 0.67) {
                     emotionType = EmotionType.SADNESS_HIGH;
-                } else if (dominance >= 0 && dominance <= 0.5) {
+                } else if (dominance >= 0.33) {
                     emotionType = EmotionType.SADNESS_MEDIUM;
                 } else {
                     emotionType = EmotionType.SADNESS_LOW;
                 }
             } else {
-                if (dominance > 0.5) {
+                if (dominance > 0.67) {
                     emotionType = EmotionType.FEAR_HIGH;
-                } else if (dominance >= 0 && dominance <= 0.5) {
+                } else if (dominance >= 0.33) {
                     emotionType = EmotionType.FEAR_MEDIUM;
                 } else {
                     emotionType = EmotionType.FEAR_LOW;
                 }
             }
         } else {
-            if (arousal > 0.5) {
-                if (dominance > 0.5) {
+            if (arousal > 0.67) {
+                if (dominance > 0.67) {
                     emotionType = EmotionType.ANGER_HIGH;
-                } else if (dominance >= 0 && dominance <= 0.5) {
+                } else if (dominance >= 0.33) {
                     emotionType = EmotionType.ANGER_MEDIUM;
                 } else {
                     emotionType = EmotionType.ANGER_LOW;
                 }
-            } else if (arousal >= 0 && arousal <= 0.5) {
-                if (dominance > 0.5) {
+            } else if (arousal >= 0.33) {
+                if (dominance > 0.67) {
                     emotionType = EmotionType.VIGOR_HIGH;
-                } else if (dominance >= 0 && dominance <= 0.5) {
+                } else if (dominance >= 0.33) {
                     emotionType = EmotionType.VIGOR_MEDIUM;
                 } else {
                     emotionType = EmotionType.VIGOR_LOW;
                 }
             } else {
-                if (dominance > 0.5) {
+                if (dominance > 0.67) {
                     emotionType = EmotionType.SADNESS_HIGH;
-                } else if (dominance >= 0 && dominance <= 0.5) {
+                } else if (dominance >= 0.33) {
                     emotionType = EmotionType.SADNESS_MEDIUM;
                 } else {
                     emotionType = EmotionType.SADNESS_LOW;
@@ -144,7 +144,7 @@ public class PADAlgorithm {
         if (stress >= 1 && stress <= 29) {
             stressScore = 0.2; // 放松
         } else if (stress >= 30 && stress <= 59) {
-            stressScore = 0.5; // 正常
+            stressScore = 0.67; // 正常
         } else if (stress >= 60 && stress <= 79) {
             stressScore = 0.7; // 中等
         } else {
@@ -157,7 +157,7 @@ public class PADAlgorithm {
         } else if (heartRate <= 50) {
             heartRateScore = 0.2; // 偏低
         } else if (heartRate >= 91 && heartRate <= 100) {
-            heartRateScore = 0.5; // 偏高
+            heartRateScore = 0.67; // 偏高
         } else if (heartRate >= 101 && heartRate <= 110) {
             heartRateScore = 0.7; // 较高
         } else {
@@ -172,14 +172,5 @@ public class PADAlgorithm {
         return sleepScore / 100;
     }
 
-    public static void main(String[] args) {
-        double pleasure = 0.6; // Placeholder values, you can replace these with actual inputs
-        double arousal = 0.4;
-        double dominance = 0.7;
-        double sleepScore = 0.8;
-
-        EmotionType emotionType = analyzeEmotion(pleasure, arousal, dominance, sleepScore);
-        System.out.println("Emotion type: " + emotionType);
-    }
 }
 
