@@ -45,6 +45,7 @@ public class ScrapBookImpl implements ScrapBookServer {
         //将消息封装成json格式
         boolean firstConnected = true;
         JSONObject messageJsonObject = new JSONObject();
+        messageJsonObject.put("ID", userID);
         messageJsonObject.put("type", "respond");
         messageJsonObject.put("data", imageURL);
         messageJsonObject.put("other", text);
