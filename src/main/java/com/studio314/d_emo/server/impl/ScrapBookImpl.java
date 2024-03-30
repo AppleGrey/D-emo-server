@@ -1,5 +1,6 @@
 package com.studio314.d_emo.server.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.obs.services.ObsClient;
 import com.studio314.d_emo.Other.Cards;
@@ -34,12 +35,69 @@ public class ScrapBookImpl implements ScrapBookServer {
 
     @Override
     public void insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal, int userID) {
+        Socket socket;
+        // 通知python服务器
+        try {
+            socket = new Socket("59.110.126.104", 12345);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        //将消息封装成json格式
+        boolean firstConnected = true;
+        JSONObject messageJsonObject = new JSONObject();
+        messageJsonObject.put("ID", userID);
+        messageJsonObject.put("type", "respond");
+        messageJsonObject.put("data", imageURL);
+        messageJsonObject.put("other", text);
+        messageJsonObject.put("firstConnect", firstConnected);
+        //socket将clientMessage发送给服务器
+        BufferedOutputStream bos;
+        try {
+            bos = new BufferedOutputStream(socket.getOutputStream());
+            bos.write(messageJsonObject.toJSONString().getBytes());
+            firstConnected = false;
+            bos.flush();
+        } catch(Exception e) {
+            log.info("服务器已断开");
+            try {
+                socket = new Socket("59.110.126.104", 12345);
+                bos = new BufferedOutputStream(socket.getOutputStream());
+                log.info("重新连接成功");
+                messageJsonObject.put("firstConnect", true);
+                bos.write(messageJsonObject.toJSONString().getBytes());
+                firstConnected = false;
+                bos.flush();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+
+        }
+
+        // 读取服务器上的响应数据
+        BufferedInputStream bis1 = null;
+        byte[] data;
+        int len;
+        try {
+            bis1 = new BufferedInputStream(socket.getInputStream());
+            data = new byte[10240];
+            len = bis1.read(data);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        String rec = new String(data,0,len);
+//        log.info("rec:"+rec);
+        JSONObject recJsonObject = JSONObject.parseObject(rec);
+        String recData = recJsonObject.getString("data");
+
+
         TreeHoleCard treeHoleCard = new TreeHoleCard();
         treeHoleCard.setImageURL(imageURL);
         treeHoleCard.setText(text);
         treeHoleCard.setEmotionId(emotionId);
         treeHoleCard.setIsPersonal(isPersonal);
         treeHoleCard.setUserId(userID);
+        treeHoleCard.setComment(recData);
         treeHoleCardMapper.insert(treeHoleCard);
     }
 

@@ -248,6 +248,13 @@ public class ChatServer {
             String targetUserId = clientJsonObject.getString("userId");
             //获取消息内容
             String clientMessage = clientJsonObject.getString("content");
+            //获取heartRate
+            float heartRate = clientJsonObject.getFloat("heartRate");
+            //获取睡眠的分
+            float sleepScore = clientJsonObject.getFloat("sleepScore");
+            //获取压力值
+            float pressure = clientJsonObject.getFloat("pressure");
+            log.info("heartRate:"+heartRate + " sleepScore:"+sleepScore + " pressure:"+pressure);
 //            log.info("【websocket消息】 用户："+ userId + " 发送消息："+clientMessage);
             int audioTime = clientJsonObject.getIntValue("time");
             //获取消息类型
