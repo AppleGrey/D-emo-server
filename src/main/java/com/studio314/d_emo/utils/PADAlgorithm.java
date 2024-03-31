@@ -86,6 +86,16 @@ public class PADAlgorithm {
         return emotionType;
     }
 
+    public static EmotionType getEmotionWithAI(double pleasure, double stress, double heartRate, double sleepScore, double a_AI, double d_AI) {
+        double arousal = normalize(mapToArousal(stress, heartRate));
+        double dominance = normalize(mapToDominance(sleepScore));
+        pleasure = normalize(pleasure);
+        arousal = normalize(a_AI) * 0.5 + arousal * 0.5;
+        dominance = normalize(d_AI) * 0.5 + dominance * 0.5;
+        EmotionType emotionType = analyzeEmotion(pleasure, arousal, dominance);
+        return emotionType;
+    }
+
     //将数字标准化
     public static double normalize(double value) {
         return value * 2 - 1;
@@ -195,8 +205,10 @@ public class PADAlgorithm {
             stressScore = 0.67; // 正常
         } else if (stress >= 60 && stress <= 79) {
             stressScore = 0.7; // 中等
-        } else {
+        } else if(stress > 79){
             stressScore = 0.9; // 偏高
+        } else {
+            stressScore = 0.5; // 未知
         }
 
         double heartRateScore;
@@ -208,8 +220,10 @@ public class PADAlgorithm {
             heartRateScore = 0.67; // 偏高
         } else if (heartRate >= 101 && heartRate <= 110) {
             heartRateScore = 0.7; // 较高
-        } else {
+        } else if (heartRate > 110) {
             heartRateScore = 0.9; // 过高
+        } else {
+            heartRateScore = 0.5; // 未知
         }
 
         //压力值占比0.1，心率占比0.9
@@ -217,6 +231,9 @@ public class PADAlgorithm {
     }
 
     private static double mapToDominance(double sleepScore) {
+        if(sleepScore < 0) {
+            return 0.5;
+        }
         return sleepScore / 100;
     }
 

@@ -328,17 +328,19 @@ public class ChatServer {
                 String emotion = recJsonObject.getString("emotion");
                 log.info("AI-emotion:"+emotion);
                 double pleasure;
+                double arousal;
+                double dominance;
                 // 获取pleasure
                 try {
                     emotion = emotion.replace("'", "").replace("'", "");
-                    System.out.println(emotion.indexOf("P") + 2);
-                    System.out.println(emotion.indexOf("A") - 1);
-                    String P = emotion.substring(emotion.indexOf("P") + 2, emotion.indexOf("A") - 1);
-                    System.out.println(P);
-                    pleasure = Double.parseDouble(P);
+                    pleasure = Double.parseDouble(emotion.substring(emotion.indexOf("P") + 2, emotion.indexOf("A") - 1));
+                    arousal = Double.parseDouble(emotion.substring(emotion.indexOf("A") + 2, emotion.indexOf("D") - 1));
+                    dominance = Double.parseDouble(emotion.substring(emotion.indexOf("D") + 2, emotion.length() - 1));
                 } catch (Exception e) {
                     e.printStackTrace();
                     pleasure = 0.5;
+                    arousal = 0.5;
+                    dominance = 0.5;
                 }
                 log.info("PAD:"+pleasure + " " + pressure + " " + heartRate + " " + sleepScore);
                 // 使用replace去除 [ ] 符号
@@ -348,7 +350,7 @@ public class ChatServer {
                 // 使用replace去除 " 符合 和 " 符号
                 emotion = emotion.replace("\"", "").replace("\"", "");
                 //计算情绪
-                PADAlgorithm.EmotionType PADemotionType = PADAlgorithm.getEmotion(pleasure, pressure, heartRate, sleepScore);
+                PADAlgorithm.EmotionType PADemotionType = PADAlgorithm.getEmotionWithAI(pleasure, pressure, heartRate, sleepScore, arousal, dominance);
                 log.info("PAD-emotion:" + PADAlgorithm.getEmotionString(PADemotionType));
 
                 String operator = recJsonObject.getString("operator");
