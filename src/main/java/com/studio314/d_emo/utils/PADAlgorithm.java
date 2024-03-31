@@ -81,6 +81,7 @@ public class PADAlgorithm {
     public static EmotionType getEmotion(double pleasure, double stress, double heartRate, double sleepScore) {
         double arousal = mapToArousal(stress, heartRate);
         double dominance = mapToDominance(sleepScore);
+        System.out.println("pleasure: " + pleasure + " arousal: " + arousal + " dominance: " + dominance);
         EmotionType emotionType = analyzeEmotion(pleasure, arousal, dominance);
         return emotionType;
     }
@@ -89,7 +90,7 @@ public class PADAlgorithm {
 
         EmotionType emotionType;
 
-        if (pleasure > 0.67) {
+        if (pleasure > 0.4) {
             if (arousal > 0.67) {
                 if (dominance > 0.67) {
                     emotionType = EmotionType.JOY_HIGH;
@@ -115,7 +116,7 @@ public class PADAlgorithm {
                     emotionType = EmotionType.SLEEPINESS_LOW;
                 }
             }
-        } else if (pleasure >= 0.33) {
+        } else if (pleasure >= 0.2) {
             if (arousal > 0.67) {
                 if (dominance > 0.67) {
                     emotionType = EmotionType.DISTRESS_HIGH;
