@@ -285,10 +285,7 @@ public class ScrapBookImpl implements ScrapBookServer {
                 maxEmotion = entry.getKey();
             }
         }
-        int type = PADAlgorithm.emojiIDMap.get(maxEmotion);
-
-
-
+        return maxEmotion;
     }
 
 
