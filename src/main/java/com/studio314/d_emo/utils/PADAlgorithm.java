@@ -235,7 +235,17 @@ public class PADAlgorithm {
         if(sleepScore < 0) {
             return 0.5;
         }
-        return sleepScore / 100;
+        if(sleepScore >= 0 && sleepScore <= 60) {
+            return 0.2;
+        } else if(sleepScore > 60 && sleepScore <= 70) {
+            return 0.4;
+        } else if(sleepScore > 70 && sleepScore <= 80) {
+            return 0.6;
+        } else if(sleepScore > 80 && sleepScore <= 90) {
+            return 0.8;
+        } else {
+            return 1;
+        }
     }
 
 }
