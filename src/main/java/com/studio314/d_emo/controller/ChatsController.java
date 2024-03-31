@@ -20,9 +20,9 @@ public class ChatsController {
     @GetMapping("/getChats")
     public Result getChats(int userId) {
         List<Chats> chatsList = chatServer.getChats(userId);
-        for (Chats chat : chatsList) {
-            log.info(chat.toString());
-        }
+//        for (Chats chat : chatsList) {
+//            log.info(chat.toString());
+//        }
         return Result.success(chatServer.getChats(userId));
     }
 

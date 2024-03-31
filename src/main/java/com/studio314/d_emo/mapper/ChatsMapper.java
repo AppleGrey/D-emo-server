@@ -17,6 +17,8 @@ public interface ChatsMapper extends BaseMapper<Chats>{
     @Insert("insert into chats(senderID, message, type, isReceiver, audioTime) values (#{senderID}, #{message}, #{type}, #{isReceiver}, #{audioTime})")
     void insertChatWithAudio(int senderID, String message, int type, int isReceiver, int audioTime);
 
+
     @Select("select emotion from chats where senderID = #{senderID} and DATE(sendTime) = CURDATE();")
     List<Chats> getCurDayEmotion(int senderID);
+
 }

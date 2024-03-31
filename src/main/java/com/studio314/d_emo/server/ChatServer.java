@@ -6,6 +6,7 @@ import com.studio314.d_emo.mapper.TodoMapper;
 import com.studio314.d_emo.pojo.Chats;
 import com.studio314.d_emo.pojo.Todo;
 import com.studio314.d_emo.server.impl.TodoServerImpl;
+import com.studio314.d_emo.utils.PADAlgorithm;
 import jakarta.websocket.OnClose;
 import jakarta.websocket.OnMessage;
 import jakarta.websocket.OnOpen;
@@ -28,6 +29,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -248,10 +250,40 @@ public class ChatServer {
             String targetUserId = clientJsonObject.getString("userId");
             //获取消息内容
             String clientMessage = clientJsonObject.getString("content");
+            log.info("【websocket消息】 用户："+ userId + " 发送消息："+clientMessage);
+            //获取heartRate
+            float heartRate = clientJsonObject.getFloat("heartRate");
+            //获取睡眠的分
+            float sleepScore = clientJsonObject.getFloat("sleepScore");
+            //获取压力值
+            float pressure = clientJsonObject.getFloat("pressure");
+            log.info("heartRate:"+heartRate + " sleepScore:"+sleepScore + " pressure:"+pressure);
 //            log.info("【websocket消息】 用户："+ userId + " 发送消息："+clientMessage);
             int audioTime = clientJsonObject.getIntValue("time");
             //获取消息类型
             int type =  clientJsonObject.getIntValue("type");
+
+            //获取上一条消息的情绪
+            Chats lastChat = chatsMapper.getLastChat(Integer.parseInt(userId));
+            String lastEmotion;
+            if(lastChat == null || lastChat.getEmotion() == null){
+                lastEmotion = "未知";
+            } else {
+                lastEmotion = lastChat.getEmotion();
+                int emotionID = Integer.parseInt(lastEmotion);
+                //将数字映射为文字,如果为-1或未找到，都是未知
+                if (EMOTIONS.containsValue(emotionID)) {
+                    for (Map.Entry<String, Integer> entry : EMOTIONS.entrySet()) {
+                        if (entry.getValue().equals(emotionID)) {
+                            lastEmotion = entry.getKey();
+                            break;
+                        }
+                    }
+                } else {
+                    lastEmotion = "未知";
+                }
+            }
+
             if (type == 0){
 
                 //将消息封装成json格式
@@ -260,14 +292,15 @@ public class ChatServer {
                 messageJsonObject.put("ID", Integer.parseInt(userId));
                 messageJsonObject.put("data", clientMessage);
                 messageJsonObject.put("firstConnect", firstConnected);
-
+                messageJsonObject.put("emotion", lastEmotion);
+                log.info(clientMessage);
                 // 防止心跳与消息发送冲突
                 synchronized (lock) {
                     //socket将clientMessage发送给服务器
                     BufferedOutputStream bos;
                     try {
                         bos = new BufferedOutputStream(socket.getOutputStream());
-                        bos.write(messageJsonObject.toJSONString().getBytes());
+                        bos.write(messageJsonObject.toJSONString().getBytes(StandardCharsets.UTF_8));
                         firstConnected = false;
                         bos.flush();
                     } catch(Exception e) {
@@ -293,12 +326,32 @@ public class ChatServer {
                 JSONObject recJsonObject = JSONObject.parseObject(rec);
                 String recData = recJsonObject.getString("data");
                 String emotion = recJsonObject.getString("emotion");
+                log.info("AI-emotion:"+emotion);
+                double pleasure;
+                double arousal;
+                double dominance;
+                // 获取pleasure
+                try {
+                    emotion = emotion.replace("'", "").replace("'", "");
+                    pleasure = Double.parseDouble(emotion.substring(emotion.indexOf("P") + 2, emotion.indexOf("A") - 1));
+                    arousal = Double.parseDouble(emotion.substring(emotion.indexOf("A") + 2, emotion.indexOf("D") - 1));
+                    dominance = Double.parseDouble(emotion.substring(emotion.indexOf("D") + 2, emotion.length() - 1));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    pleasure = 0.5;
+                    arousal = 0.5;
+                    dominance = 0.5;
+                }
+                log.info("PAD:"+pleasure + " " + pressure + " " + heartRate + " " + sleepScore);
                 // 使用replace去除 [ ] 符号
                 emotion = emotion.replace("[", "").replace("]", "");
                 // 使用replace去除 ' 符号 和 ' 符号
                 emotion = emotion.replace("'", "").replace("'", "");
                 // 使用replace去除 " 符合 和 " 符号
                 emotion = emotion.replace("\"", "").replace("\"", "");
+                //计算情绪
+                PADAlgorithm.EmotionType PADemotionType = PADAlgorithm.getEmotionWithAI(pleasure, pressure, heartRate, sleepScore, arousal, dominance);
+                log.info("PAD-emotion:" + PADAlgorithm.getEmotionString(PADemotionType));
 
                 String operator = recJsonObject.getString("operator");
 //                log.info("operator:"+operator);
@@ -334,13 +387,14 @@ public class ChatServer {
 
 
 //                log.info("emotionaaaaaaa:"+emotion);
-                //判断情绪是否在情绪列表中
-                if (EMOTIONS.containsKey(emotion)) {
-                    emotion = EMOTIONS.get(emotion).toString();
-//                    log.info("转换后emotion：" + emotion);
-                }else {
-                    emotion = "-1";
-                }
+//                //判断情绪是否在情绪列表中
+//                if (EMOTIONS.containsKey(PADemotion)) {
+//                    emotion = EMOTIONS.get(emotion).toString();
+////                    log.info("转换后emotion：" + emotion);
+//                }else {
+//                    emotion = "-1";
+//                }
+                emotion = String.valueOf(PADAlgorithm.getEmoji(PADemotionType));
 
                 //text为utf-8字符，解码
                 String recText = new String(recData.getBytes("utf-8"), "utf-8");
@@ -366,6 +420,7 @@ public class ChatServer {
                 messageJsonObject.put("ID", Integer.parseInt(userId));
                 messageJsonObject.put("data", clientMessage);
                 messageJsonObject.put("firstConnect", firstConnected);
+                messageJsonObject.put("emotion", lastEmotion);
 
                 synchronized (lock){
                     //socket将clientMessage发送给服务器
@@ -398,6 +453,16 @@ public class ChatServer {
                 JSONObject recJsonObject = JSONObject.parseObject(rec);
                 String recData = recJsonObject.getString("data");
                 String emotion = recJsonObject.getString("emotion");
+                double pleasure;
+                // 获取pleasure
+                try {
+                    pleasure = Double.parseDouble(emotion.substring(emotion.indexOf("P") + 4, emotion.indexOf("A") - 2));
+                } catch (Exception e) {
+                    pleasure = 0.5;
+                }
+                //计算情绪
+                PADAlgorithm.EmotionType PADemotionType = PADAlgorithm.getEmotion(pleasure, pressure, heartRate, sleepScore);
+                log.info("PAD-emotion:" + PADAlgorithm.getEmotionString(PADemotionType));
 
                 // 使用replace去除 [ ] 符号
                 emotion = emotion.replace("[", "").replace("]", "");
@@ -409,13 +474,14 @@ public class ChatServer {
                 //text为utf-8字符，解码
                 String recText = new String(recData.getBytes("utf-8"), "utf-8");
 //                log.info("【websocket消息】 用户："+ userId + " 接收消息："+recText);
-                //判断情绪是否在情绪列表中
-                if (EMOTIONS.containsKey(emotion)) {
-                    emotion = EMOTIONS.get(emotion).toString();
-//                    log.info("转换后emotion：" + emotion);
-                }else {
-                    emotion = "-1";
-                }
+//                //判断情绪是否在情绪列表中
+//                if (EMOTIONS.containsKey(PADemotion)) {
+//                    emotion = EMOTIONS.get(emotion).toString();
+////                    log.info("转换后emotion：" + emotion);
+//                }else {
+//                    emotion = "-1";
+//                }
+                emotion = String.valueOf(PADAlgorithm.getEmoji(PADemotionType));
                 //将获取到的消息发送给接收端
                 JSONObject serverJsonObject = new JSONObject();
                 serverJsonObject.put("type", 0);
@@ -528,6 +594,7 @@ public class ChatServer {
                 messageJsonObject.put("ID", Integer.parseInt(userId));
                 messageJsonObject.put("data", clientMessage);
                 messageJsonObject.put("firstConnect", firstConnected);
+                messageJsonObject.put("emotion", lastEmotion);
 
                 // 防止心跳与消息发送冲突
                 synchronized (lock){
@@ -560,6 +627,16 @@ public class ChatServer {
                 JSONObject recJsonObject = JSONObject.parseObject(rec);
                 String recData = recJsonObject.getString("data");
                 String emotion = recJsonObject.getString("emotion");
+                double pleasure;
+                // 获取pleasure
+                try {
+                    pleasure = Double.parseDouble(emotion.substring(emotion.indexOf("P") + 4, emotion.indexOf("A") - 2));
+                } catch (Exception e) {
+                    pleasure = 0.5;
+                }
+                ///计算情绪
+                PADAlgorithm.EmotionType PADemotionType = PADAlgorithm.getEmotion(pleasure, pressure, heartRate, sleepScore);
+                log.info("PAD-emotion:" + PADAlgorithm.getEmotionString(PADemotionType));
 
                 // 使用replace去除 [ ] 符号
                 emotion = emotion.replace("[", "").replace("]", "");
@@ -591,13 +668,14 @@ public class ChatServer {
                     todoMapper.insert(todo);
                 }
 
-                //判断情绪是否在情绪列表中
-                if (EMOTIONS.containsKey(emotion)) {
-                    emotion = EMOTIONS.get(emotion).toString();
-//                    log.info("转换后emotion：" + emotion);
-                }else {
-                    emotion = "-1";
-                }
+//                //判断情绪是否在情绪列表中
+//                if (EMOTIONS.containsKey(PADemotion)) {
+//                    emotion = EMOTIONS.get(emotion).toString();
+////                    log.info("转换后emotion：" + emotion);
+//                }else {
+//                    emotion = "-1";
+//                }
+                emotion = String.valueOf(PADAlgorithm.getEmoji(PADemotionType));
 
                 //text为utf-8字符，解码
                 String recText = new String(recData.getBytes("utf-8"), "utf-8");
