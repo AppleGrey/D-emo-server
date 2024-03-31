@@ -10,26 +10,26 @@ public class PADAlgorithm {
         put(EmotionType.JOY_MEDIUM, 2131230918);
         put(EmotionType.JOY_LOW, 2131230913);
         put(EmotionType.DISTRESS_HIGH, 2131230915);
-        put(EmotionType.DISTRESS_MEDIUM, 2131230907);
-        put(EmotionType.DISTRESS_LOW, 2131230924);
+        put(EmotionType.DISTRESS_MEDIUM, 2131230932);
+        put(EmotionType.DISTRESS_LOW, 2131230906);
         put(EmotionType.CALM_HIGH, 2131230913);
-        put(EmotionType.CALM_MEDIUM, 2131230933);
+        put(EmotionType.CALM_MEDIUM, 2131230911);
         put(EmotionType.CALM_LOW, 2131230934);
         put(EmotionType.ANGER_HIGH, 2131230916);
         put(EmotionType.ANGER_MEDIUM, 2131230906);
         put(EmotionType.ANGER_LOW, 2131230919);
-        put(EmotionType.FEAR_HIGH, 2131230921);
+        put(EmotionType.FEAR_HIGH, 2131230910);
         put(EmotionType.FEAR_MEDIUM, 2131230908);
-        put(EmotionType.FEAR_LOW, 2131230917);
-        put(EmotionType.SADNESS_HIGH, 2131230910);
-        put(EmotionType.SADNESS_MEDIUM, 2131230909);
-        put(EmotionType.SADNESS_LOW, 2131230920);
-        put(EmotionType.VIGOR_HIGH, 2131230911);
+        put(EmotionType.FEAR_LOW, 2131230912);
+        put(EmotionType.SADNESS_HIGH, 2131230921);
+        put(EmotionType.SADNESS_MEDIUM, 2131230920);
+        put(EmotionType.SADNESS_LOW, 2131230909);
+        put(EmotionType.VIGOR_HIGH, 2131230933);
         put(EmotionType.VIGOR_MEDIUM, 2131230914);
         put(EmotionType.VIGOR_LOW, 2131230931);
         put(EmotionType.SLEEPINESS_HIGH, 2131230932);
         put(EmotionType.SLEEPINESS_MEDIUM, 2131230908);
-        put(EmotionType.SLEEPINESS_LOW, 2131230912);
+        put(EmotionType.SLEEPINESS_LOW, 2131230929);
 
     }};
 
@@ -54,7 +54,7 @@ public class PADAlgorithm {
             case JOY_HIGH -> "高兴";
             case JOY_MEDIUM -> "愉快";
             case JOY_LOW -> "开心";
-            case DISTRESS_HIGH -> "痛苦";
+            case DISTRESS_HIGH -> "大哭";
             case DISTRESS_MEDIUM -> "焦虑";
             case DISTRESS_LOW -> "烦躁";
             case CALM_HIGH -> "平静";
@@ -64,14 +64,14 @@ public class PADAlgorithm {
             case ANGER_MEDIUM -> "生气";
             case ANGER_LOW -> "不满";
             case FEAR_HIGH -> "恐惧";
-            case FEAR_MEDIUM -> "担忧";
-            case FEAR_LOW -> "害怕";
+            case FEAR_MEDIUM -> "害怕";
+            case FEAR_LOW -> "担忧";
             case SADNESS_HIGH -> "悲伤";
             case SADNESS_MEDIUM -> "失落";
             case SADNESS_LOW -> "沮丧";
             case VIGOR_HIGH -> "活力";
             case VIGOR_MEDIUM -> "兴奋";
-            case VIGOR_LOW -> "疲惫";
+            case VIGOR_LOW -> "调皮";
             case SLEEPINESS_HIGH -> "无聊";
             case SLEEPINESS_MEDIUM -> "困倦";
             case SLEEPINESS_LOW -> "疲劳";
@@ -136,11 +136,11 @@ public class PADAlgorithm {
         } else if (P < 0 && A < 0 && D >= 0) {
             double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
             if (value >= 2) {
-                emotionType = EmotionType.DISTRESS_HIGH;
+                emotionType = EmotionType.FEAR_HIGH;
             } else if (value >= 1) {
-                emotionType = EmotionType.DISTRESS_MEDIUM;
+                emotionType = EmotionType.FEAR_MEDIUM;
             } else {
-                emotionType = EmotionType.DISTRESS_LOW;
+                emotionType = EmotionType.FEAR_LOW;
             }
         } else if (P >= 0 && A >= 0 && D < 0) {
             double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
@@ -154,11 +154,11 @@ public class PADAlgorithm {
         } else if (P < 0 && A >= 0 && D < 0) {
             double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
             if (value >= 2) {
-                emotionType = EmotionType.FEAR_HIGH;
+                emotionType = EmotionType.DISTRESS_HIGH;
             } else if (value >= 1) {
-                emotionType = EmotionType.FEAR_MEDIUM;
+                emotionType = EmotionType.DISTRESS_MEDIUM;
             } else {
-                emotionType = EmotionType.FEAR_LOW;
+                emotionType = EmotionType.DISTRESS_LOW;
             }
         } else if (P >= 0 && A < 0 && D < 0) {
             double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
@@ -211,11 +211,12 @@ public class PADAlgorithm {
         } else {
             stressScore = 0.5; // 未知
         }
+        System.out.println("stressScore: " + stressScore);
 
         double heartRateScore;
         if (heartRate >= 50 && heartRate <= 90) {
             heartRateScore = 0.3; // 正常
-        } else if (heartRate <= 50) {
+        } else if (heartRate <= 50 && heartRate >= 10) {
             heartRateScore = 0.2; // 偏低
         } else if (heartRate >= 91 && heartRate <= 100) {
             heartRateScore = 0.67; // 偏高
@@ -226,7 +227,7 @@ public class PADAlgorithm {
         } else {
             heartRateScore = 0.5; // 未知
         }
-
+        System.out.println("heartRateScore: " + heartRateScore);
         //压力值占比0.1，心率占比0.9
         return 0.1 * stressScore + 0.9 * heartRateScore;
     }
@@ -248,5 +249,9 @@ public class PADAlgorithm {
         }
     }
 
+//    public static void main(String[] args) {
+//        EmotionType emotionWithAI = getEmotionWithAI(0, -1, 0, 75, 0.7, 0.3);
+//        System.out.println(emotionWithAI);
+//    }
 }
 

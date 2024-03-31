@@ -13,6 +13,7 @@ import com.studio314.d_emo.server.ScrapBookServer;
 import com.studio314.d_emo.Other.Statistic;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -34,7 +35,9 @@ public class ScrapBookImpl implements ScrapBookServer {
     ChatsMapper chatsMapper;
 
     @Override
+    @Async
     public void insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal, int userID) {
+
         Socket socket;
         // 通知python服务器
         try {

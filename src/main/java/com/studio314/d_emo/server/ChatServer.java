@@ -51,34 +51,33 @@ public class ChatServer {
     private static String pythonServer;
 
     public static Map<String, Integer> EMOTIONS = new LinkedHashMap<>();
-
     static {
         EMOTIONS.put("高兴", 2131230905);
         EMOTIONS.put("生气", 2131230916);
         EMOTIONS.put("喜欢", 2131230927);
-        EMOTIONS.put("失望", 2131230929);
-        EMOTIONS.put("幸灾乐祸", 2131230930);
+        EMOTIONS.put("疲劳", 2131230929);
+        EMOTIONS.put("笑哭", 2131230930);
         EMOTIONS.put("调皮", 2131230931);
-        EMOTIONS.put("折磨", 2131230932);
-        EMOTIONS.put("感激", 2131230933);
-        EMOTIONS.put("害羞", 2131230934);
-        EMOTIONS.put("憎恨", 2131230906);
+        EMOTIONS.put("焦虑", 2131230932);
+        EMOTIONS.put("亲亲", 2131230933);
+        EMOTIONS.put("安逸", 2131230934);
+        EMOTIONS.put("烦躁", 2131230906);
         EMOTIONS.put("痛苦", 2131230907);
         EMOTIONS.put("惊吓", 2131230908);
-        EMOTIONS.put("害怕", 2131230909);
-        EMOTIONS.put("懊悔", 2131230910);
+        EMOTIONS.put("失落", 2131230909);
+        EMOTIONS.put("害怕", 2131230910);
         EMOTIONS.put("轻松", 2131230911);
-        EMOTIONS.put("惊讶", 2131230912);
-        EMOTIONS.put("希望", 2131230913);
-        EMOTIONS.put("得意", 2131230914);
-        EMOTIONS.put("同情", 2131230915);
+        EMOTIONS.put("吃惊", 2131230912);
+        EMOTIONS.put("开心", 2131230913);
+        EMOTIONS.put("兴奋", 2131230914);
+        EMOTIONS.put("大哭", 2131230915);
         EMOTIONS.put("愤恨", 2131230917);
-        EMOTIONS.put("可爱", 2131230918);
-        EMOTIONS.put("责备", 2131230919);
-        EMOTIONS.put("恐惧", 2131230920);
-        EMOTIONS.put("厌恶", 2131230921);
+        EMOTIONS.put("愉快", 2131230918);
+        EMOTIONS.put("不满", 2131230919);
+        EMOTIONS.put("悲伤", 2131230920);
+        EMOTIONS.put("恐惧", 2131230921);
         EMOTIONS.put("满足", 2131230922);
-        EMOTIONS.put("傲慢", 2131230923);
+        EMOTIONS.put("小恶魔", 2131230923);
         EMOTIONS.put("羞愧", 2131230924);
         EMOTIONS.put("爱", 2131230925);
         EMOTIONS.put("点赞", 2131230926);
@@ -358,7 +357,7 @@ public class ChatServer {
 //                log.info("operator:"+operator);
                 JSONObject operateJsonObject = JSONObject.parseObject(operator);
                 String operateType = operateJsonObject.getString("type");
-
+                log.info("operateType:"+operateType);
                 if (operateType.equals("todo")){
                     JSONObject todoJsonObject = JSONObject.parseObject(operateJsonObject.getString("data"));
                     String date = todoJsonObject.getString("time");
@@ -371,7 +370,9 @@ public class ChatServer {
                     Date parsedDate = dateFormat.parse(date);
                     Timestamp timestamp = new Timestamp(parsedDate.getTime());
                     todo.setDate(timestamp);
+                    log.info("待办timestamp:"+timestamp);
                     todo.setName(name);
+                    log.info("userId:"+userId);
                     todo.setUserid(Integer.parseInt(userId));
                     todo.setIsfinished(0);
                     todoMapper.insert(todo);

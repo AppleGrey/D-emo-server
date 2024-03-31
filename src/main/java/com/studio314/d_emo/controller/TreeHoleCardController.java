@@ -21,6 +21,7 @@ public class TreeHoleCardController {
 
     @PostMapping("/insertTreeHoleCard")
     public Result insertTreeHoleCard(String imageURL, String text, int emotionId, int isPersonal, int userID) {
+
         scrapBookServer.insertTreeHoleCard(imageURL, text, emotionId, isPersonal,userID);
         log.info("插入树洞卡片成功");
         return Result.success();
