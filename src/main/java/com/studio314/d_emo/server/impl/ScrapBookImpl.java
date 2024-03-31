@@ -11,6 +11,7 @@ import com.studio314.d_emo.pojo.Chats;
 import com.studio314.d_emo.pojo.TreeHoleCard;
 import com.studio314.d_emo.server.ScrapBookServer;
 import com.studio314.d_emo.Other.Statistic;
+import com.studio314.d_emo.utils.PADAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -21,6 +22,7 @@ import java.net.Socket;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -251,21 +253,42 @@ public class ScrapBookImpl implements ScrapBookServer {
 
     @Override
     public String getScrapBookEmotion(int userId) {
-        //获取用户最近的一条聊天的emotion
-        LambdaQueryWrapper<Chats> wrapper = new LambdaQueryWrapper<Chats>();
-        wrapper.eq(Chats::getSenderID, userId);
-        wrapper.eq(Chats::getIsReceiver, 0);
-        // emotion 不为空
-        wrapper.isNotNull(Chats::getEmotion);
-        // emotion 不为 -1
-        wrapper.ne(Chats::getEmotion, "-1");
-        wrapper.orderByDesc(Chats::getSendTime);
-        wrapper.last("limit 1");
-        Chats chats = chatsMapper.selectOne(wrapper);
-        if (chats == null || chats.getEmotion() == null){
-            return "-1";
+//        //获取用户最近的一条聊天的emotion
+//        LambdaQueryWrapper<Chats> wrapper = new LambdaQueryWrapper<Chats>();
+//        wrapper.eq(Chats::getSenderID, userId);
+//        wrapper.eq(Chats::getIsReceiver, 0);
+//        // emotion 不为空
+//        wrapper.isNotNull(Chats::getEmotion);
+//        // emotion 不为 -1
+//        wrapper.ne(Chats::getEmotion, "-1");
+//        wrapper.orderByDesc(Chats::getSendTime);
+//        wrapper.last("limit 1");
+//        Chats chats = chatsMapper.selectOne(wrapper);
+//        if (chats == null || chats.getEmotion() == null){
+//            return "-1";
+//        }
+//        return chats.getEmotion();
+
+        //先获取当天情绪
+        List<Chats> emoList = chatsMapper.getCurDayEmotion(userId);
+        Map<String,Integer> counts = new HashMap<>();
+        for(Chats chats:emoList){
+            if(!counts.containsKey(chats.getEmotion())){
+                counts.put(chats.getEmotion(),1);
+            }else {
+                counts.replace(chats.getEmotion(),counts.get(chats.getEmotion())+1);
+            }
         }
-        return chats.getEmotion();
+        // 找到众数
+        int maxCount = 0;
+        String maxEmotion = null;
+        for (Map.Entry<String, Integer> entry : counts.entrySet()) {
+            if (entry.getValue() > maxCount) {
+                maxCount = entry.getValue();
+                maxEmotion = entry.getKey();
+            }
+        }
+        return maxEmotion;
     }
 
 
