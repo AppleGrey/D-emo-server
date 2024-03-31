@@ -72,102 +72,117 @@ public class PADAlgorithm {
             case VIGOR_HIGH -> "活力";
             case VIGOR_MEDIUM -> "兴奋";
             case VIGOR_LOW -> "疲惫";
-            case SLEEPINESS_HIGH -> "困倦";
-            case SLEEPINESS_MEDIUM -> "昏昏欲睡";
+            case SLEEPINESS_HIGH -> "无聊";
+            case SLEEPINESS_MEDIUM -> "困倦";
             case SLEEPINESS_LOW -> "疲劳";
         };
     }
 
     public static EmotionType getEmotion(double pleasure, double stress, double heartRate, double sleepScore) {
-        double arousal = mapToArousal(stress, heartRate);
-        double dominance = mapToDominance(sleepScore);
+        double arousal = normalize(mapToArousal(stress, heartRate));
+        double dominance = normalize(mapToDominance(sleepScore));
+        pleasure = normalize(pleasure);
         EmotionType emotionType = analyzeEmotion(pleasure, arousal, dominance);
         return emotionType;
     }
 
-    public static EmotionType analyzeEmotion(double pleasure, double arousal, double dominance) {
+    //将数字标准化
+    public static double normalize(double value) {
+        return value * 2 - 1;
+    }
+
+    public static EmotionType analyzeEmotion(double P, double A, double D) {
 
         EmotionType emotionType;
-
-        if (pleasure > 0.67) {
-            if (arousal > 0.67) {
-                if (dominance > 0.67) {
-                    emotionType = EmotionType.JOY_HIGH;
-                } else if (dominance >= 0.33) {
-                    emotionType = EmotionType.JOY_MEDIUM;
-                } else {
-                    emotionType = EmotionType.JOY_LOW;
-                }
-            } else if (arousal >= 0.33) {
-                if (dominance > 0.67) {
-                    emotionType = EmotionType.CALM_HIGH;
-                } else if (dominance >= 0.33) {
-                    emotionType = EmotionType.CALM_MEDIUM;
-                } else {
-                    emotionType = EmotionType.CALM_LOW;
-                }
+        //PAD三个值范围都是-1到1
+        if (P > 0 && A > 0 && D > 0) {
+            double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
+            if (value > 2) {
+                emotionType = EmotionType.JOY_HIGH;
+            } else if (value > 1) {
+                emotionType = EmotionType.JOY_MEDIUM;
             } else {
-                if (dominance > 0.67) {
-                    emotionType = EmotionType.SLEEPINESS_HIGH;
-                } else if (dominance >= 0.33) {
-                    emotionType = EmotionType.SLEEPINESS_MEDIUM;
-                } else {
-                    emotionType = EmotionType.SLEEPINESS_LOW;
-                }
+                emotionType = EmotionType.JOY_LOW;
             }
-        } else if (pleasure >= 0.33) {
-            if (arousal > 0.67) {
-                if (dominance > 0.67) {
-                    emotionType = EmotionType.DISTRESS_HIGH;
-                } else if (dominance >= 0.33) {
-                    emotionType = EmotionType.DISTRESS_MEDIUM;
-                } else {
-                    emotionType = EmotionType.DISTRESS_LOW;
-                }
-            } else if (arousal >= 0.33) {
-                if (dominance > 0.67) {
-                    emotionType = EmotionType.SADNESS_HIGH;
-                } else if (dominance >= 0.33) {
-                    emotionType = EmotionType.SADNESS_MEDIUM;
-                } else {
-                    emotionType = EmotionType.SADNESS_LOW;
-                }
+        } else if (P < 0 && A > 0 && D > 0) {
+            double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
+            if (value > 2) {
+                emotionType = EmotionType.ANGER_HIGH;
+            } else if (value > 1) {
+                emotionType = EmotionType.ANGER_MEDIUM;
             } else {
-                if (dominance > 0.67) {
-                    emotionType = EmotionType.FEAR_HIGH;
-                } else if (dominance >= 0.33) {
-                    emotionType = EmotionType.FEAR_MEDIUM;
-                } else {
-                    emotionType = EmotionType.FEAR_LOW;
-                }
+                emotionType = EmotionType.ANGER_LOW;
+            }
+        } else if (P > 0 && A < 0 && D > 0) {
+            double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
+            if (value > 2) {
+                emotionType = EmotionType.CALM_HIGH;
+            } else if (value > 1) {
+                emotionType = EmotionType.CALM_MEDIUM;
+            } else {
+                emotionType = EmotionType.CALM_LOW;
+            }
+        } else if (P < 0 && A < 0 && D > 0) {
+            double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
+            if (value > 2) {
+                emotionType = EmotionType.DISTRESS_HIGH;
+            } else if (value > 1) {
+                emotionType = EmotionType.DISTRESS_MEDIUM;
+            } else {
+                emotionType = EmotionType.DISTRESS_LOW;
+            }
+        } else if (P > 0 && A > 0 && D < 0) {
+            double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
+            if (value > 2) {
+                emotionType = EmotionType.VIGOR_HIGH;
+            } else if (value > 1) {
+                emotionType = EmotionType.VIGOR_MEDIUM;
+            } else {
+                emotionType = EmotionType.VIGOR_LOW;
+            }
+        } else if (P < 0 && A > 0 && D < 0) {
+            double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
+            if (value > 2) {
+                emotionType = EmotionType.FEAR_HIGH;
+            } else if (value > 1) {
+                emotionType = EmotionType.FEAR_MEDIUM;
+            } else {
+                emotionType = EmotionType.FEAR_LOW;
+            }
+        } else if (P > 0 && A < 0 && D < 0) {
+            double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
+            if (value > 2) {
+                emotionType = EmotionType.SLEEPINESS_HIGH;
+            } else if (value > 1) {
+                emotionType = EmotionType.SLEEPINESS_MEDIUM;
+            } else {
+                emotionType = EmotionType.SLEEPINESS_LOW;
+            }
+        } else if (P < 0 && A < 0 && D < 0) {
+            double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
+            if (value > 2) {
+                emotionType = EmotionType.SADNESS_HIGH;
+            } else if (value > 1) {
+                emotionType = EmotionType.SADNESS_MEDIUM;
+            } else {
+                emotionType = EmotionType.SADNESS_LOW;
             }
         } else {
-            if (arousal > 0.67) {
-                if (dominance > 0.67) {
-                    emotionType = EmotionType.ANGER_HIGH;
-                } else if (dominance >= 0.33) {
-                    emotionType = EmotionType.ANGER_MEDIUM;
-                } else {
-                    emotionType = EmotionType.ANGER_LOW;
-                }
-            } else if (arousal >= 0.33) {
-                if (dominance > 0.67) {
-                    emotionType = EmotionType.VIGOR_HIGH;
-                } else if (dominance >= 0.33) {
-                    emotionType = EmotionType.VIGOR_MEDIUM;
-                } else {
-                    emotionType = EmotionType.VIGOR_LOW;
-                }
-            } else {
-                if (dominance > 0.67) {
-                    emotionType = EmotionType.SADNESS_HIGH;
-                } else if (dominance >= 0.33) {
-                    emotionType = EmotionType.SADNESS_MEDIUM;
-                } else {
-                    emotionType = EmotionType.SADNESS_LOW;
-                }
-            }
+            emotionType = EmotionType.CALM_LOW;
         }
+//        } else if (P > 0 && A < 0 && D > 0) {
+//            return "calm";
+//        } else if (P < 0 && A < 0 && D > 0) {
+//            return "distress";
+//        } else if (P > 0 && A > 0 && D < 0) {
+//            return "vigor";
+//        } else if (P < 0 && A > 0 && D < 0) {
+//            return "fear";
+//        } else if (P > 0 && A < 0 && D < 0) {
+//            return "sleepness";
+//        } else if (P < 0 && A < 0 && D < 0) {
+//            return "sadness";
+//        }
 
         return emotionType;
     }
