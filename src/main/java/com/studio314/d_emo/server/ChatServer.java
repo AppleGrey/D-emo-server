@@ -29,6 +29,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -249,6 +250,7 @@ public class ChatServer {
             String targetUserId = clientJsonObject.getString("userId");
             //获取消息内容
             String clientMessage = clientJsonObject.getString("content");
+            log.info("【websocket消息】 用户："+ userId + " 发送消息："+clientMessage);
             //获取heartRate
             float heartRate = clientJsonObject.getFloat("heartRate");
             //获取睡眠的分
@@ -264,7 +266,7 @@ public class ChatServer {
             //获取上一条消息的情绪
             Chats lastChat = chatsMapper.getLastChat(Integer.parseInt(userId));
             String lastEmotion;
-            if(lastChat == null) {
+            if(lastChat == null || lastChat.getEmotion() == null){
                 lastEmotion = "未知";
             } else {
                 lastEmotion = lastChat.getEmotion();
@@ -291,14 +293,14 @@ public class ChatServer {
                 messageJsonObject.put("data", clientMessage);
                 messageJsonObject.put("firstConnect", firstConnected);
                 messageJsonObject.put("emotion", lastEmotion);
-
+                log.info(clientMessage);
                 // 防止心跳与消息发送冲突
                 synchronized (lock) {
                     //socket将clientMessage发送给服务器
                     BufferedOutputStream bos;
                     try {
                         bos = new BufferedOutputStream(socket.getOutputStream());
-                        bos.write(messageJsonObject.toJSONString().getBytes());
+                        bos.write(messageJsonObject.toJSONString().getBytes(StandardCharsets.UTF_8));
                         firstConnected = false;
                         bos.flush();
                     } catch(Exception e) {
@@ -328,10 +330,17 @@ public class ChatServer {
                 double pleasure;
                 // 获取pleasure
                 try {
-                    pleasure = Double.parseDouble(emotion.substring(emotion.indexOf("P") + 4, emotion.indexOf("A") - 2));
+                    emotion = emotion.replace("'", "").replace("'", "");
+                    System.out.println(emotion.indexOf("P") + 2);
+                    System.out.println(emotion.indexOf("A") - 1);
+                    String P = emotion.substring(emotion.indexOf("P") + 2, emotion.indexOf("A") - 1);
+                    System.out.println(P);
+                    pleasure = Double.parseDouble(P);
                 } catch (Exception e) {
+                    e.printStackTrace();
                     pleasure = 0.5;
                 }
+                log.info("PAD:"+pleasure + " " + pressure + " " + heartRate + " " + sleepScore);
                 // 使用replace去除 [ ] 符号
                 emotion = emotion.replace("[", "").replace("]", "");
                 // 使用replace去除 ' 符号 和 ' 符号
