@@ -349,6 +349,12 @@ public class ChatServer {
                 emotion = emotion.replace("'", "").replace("'", "");
                 // 使用replace去除 " 符合 和 " 符号
                 emotion = emotion.replace("\"", "").replace("\"", "");
+
+//                //测试判断情况
+//                pressure = ;
+//                heartRate = ;
+//                sleepScore = ;
+
                 //计算情绪
                 PADAlgorithm.EmotionType PADemotionType = PADAlgorithm.getEmotionWithAI(pleasure, pressure, heartRate, sleepScore, arousal, dominance);
                 log.info("PAD-emotion:" + PADAlgorithm.getEmotionString(PADemotionType));

@@ -10,8 +10,8 @@ public class PADAlgorithm {
         put(EmotionType.JOY_MEDIUM, 2131230918);
         put(EmotionType.JOY_LOW, 2131230913);
         put(EmotionType.DISTRESS_HIGH, 2131230915);
-        put(EmotionType.DISTRESS_MEDIUM, 2131230932);
-        put(EmotionType.DISTRESS_LOW, 2131230906);
+        put(EmotionType.DISTRESS_MEDIUM, 2131230906);
+        put(EmotionType.DISTRESS_LOW, 2131230932);
         put(EmotionType.CALM_HIGH, 2131230913);
         put(EmotionType.CALM_MEDIUM, 2131230911);
         put(EmotionType.CALM_LOW, 2131230934);
@@ -80,8 +80,8 @@ public class PADAlgorithm {
             case JOY_MEDIUM -> "愉快";
             case JOY_LOW -> "开心";
             case DISTRESS_HIGH -> "大哭";
-            case DISTRESS_MEDIUM -> "焦虑";
-            case DISTRESS_LOW -> "烦躁";
+            case DISTRESS_MEDIUM -> "烦躁";
+            case DISTRESS_LOW -> "焦虑";
             case CALM_HIGH -> "平静";
             case CALM_MEDIUM -> "轻松";
             case CALM_LOW -> "安逸";
@@ -225,9 +225,9 @@ public class PADAlgorithm {
 
     private static double mapToArousal(double stress, double heartRate) {
         double stressScore;
-        if (stress >= 1 && stress <= 29) {
+        if (stress >= 1 && stress <= 39) {
             stressScore = 0.2; // 放松
-        } else if (stress >= 30 && stress <= 59) {
+        } else if (stress >= 40 && stress <= 59) {
             stressScore = 0.67; // 正常
         } else if (stress >= 60 && stress <= 79) {
             stressScore = 0.7; // 中等
