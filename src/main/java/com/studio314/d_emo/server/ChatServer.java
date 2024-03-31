@@ -333,6 +333,7 @@ public class ChatServer {
                 // 获取pleasure
                 try {
                     emotion = emotion.replace("'", "").replace("'", "");
+                    emotion = emotion.replace(" ", "").replace(" ", "");
                     pleasure = Double.parseDouble(emotion.substring(emotion.indexOf("P") + 2, emotion.indexOf("A") - 1));
                     arousal = Double.parseDouble(emotion.substring(emotion.indexOf("A") + 2, emotion.indexOf("D") - 1));
                     dominance = Double.parseDouble(emotion.substring(emotion.indexOf("D") + 2, emotion.length() - 1));

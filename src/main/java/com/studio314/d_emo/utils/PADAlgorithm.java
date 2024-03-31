@@ -92,6 +92,7 @@ public class PADAlgorithm {
         pleasure = normalize(pleasure);
         arousal = normalize(a_AI) * 0.5 + arousal * 0.5;
         dominance = normalize(d_AI) * 0.5 + dominance * 0.5;
+        System.out.println("计算的pleasure: " + pleasure + " arousal: " + arousal + " dominance: " + dominance);
         EmotionType emotionType = analyzeEmotion(pleasure, arousal, dominance);
         return emotionType;
     }
@@ -105,74 +106,74 @@ public class PADAlgorithm {
 
         EmotionType emotionType;
         //PAD三个值范围都是-1到1
-        if (P > 0 && A > 0 && D > 0) {
+        if (P >= 0 && A >= 0 && D >= 0) {
             double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
-            if (value > 2) {
+            if (value >= 2) {
                 emotionType = EmotionType.JOY_HIGH;
-            } else if (value > 1) {
+            } else if (value >= 1) {
                 emotionType = EmotionType.JOY_MEDIUM;
             } else {
                 emotionType = EmotionType.JOY_LOW;
             }
-        } else if (P < 0 && A > 0 && D > 0) {
+        } else if (P < 0 && A >= 0 && D >= 0) {
             double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
-            if (value > 2) {
+            if (value >= 2) {
                 emotionType = EmotionType.ANGER_HIGH;
-            } else if (value > 1) {
+            } else if (value >= 1) {
                 emotionType = EmotionType.ANGER_MEDIUM;
             } else {
                 emotionType = EmotionType.ANGER_LOW;
             }
-        } else if (P > 0 && A < 0 && D > 0) {
+        } else if (P >= 0 && A < 0 && D >= 0) {
             double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
-            if (value > 2) {
+            if (value >= 2) {
                 emotionType = EmotionType.CALM_HIGH;
-            } else if (value > 1) {
+            } else if (value >= 1) {
                 emotionType = EmotionType.CALM_MEDIUM;
             } else {
                 emotionType = EmotionType.CALM_LOW;
             }
-        } else if (P < 0 && A < 0 && D > 0) {
+        } else if (P < 0 && A < 0 && D >= 0) {
             double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
-            if (value > 2) {
+            if (value >= 2) {
                 emotionType = EmotionType.DISTRESS_HIGH;
-            } else if (value > 1) {
+            } else if (value >= 1) {
                 emotionType = EmotionType.DISTRESS_MEDIUM;
             } else {
                 emotionType = EmotionType.DISTRESS_LOW;
             }
-        } else if (P > 0 && A > 0 && D < 0) {
+        } else if (P >= 0 && A >= 0 && D < 0) {
             double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
-            if (value > 2) {
+            if (value >= 2) {
                 emotionType = EmotionType.VIGOR_HIGH;
-            } else if (value > 1) {
+            } else if (value >= 1) {
                 emotionType = EmotionType.VIGOR_MEDIUM;
             } else {
                 emotionType = EmotionType.VIGOR_LOW;
             }
-        } else if (P < 0 && A > 0 && D < 0) {
+        } else if (P < 0 && A >= 0 && D < 0) {
             double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
-            if (value > 2) {
+            if (value >= 2) {
                 emotionType = EmotionType.FEAR_HIGH;
-            } else if (value > 1) {
+            } else if (value >= 1) {
                 emotionType = EmotionType.FEAR_MEDIUM;
             } else {
                 emotionType = EmotionType.FEAR_LOW;
             }
-        } else if (P > 0 && A < 0 && D < 0) {
+        } else if (P >= 0 && A < 0 && D < 0) {
             double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
-            if (value > 2) {
+            if (value >= 2) {
                 emotionType = EmotionType.SLEEPINESS_HIGH;
-            } else if (value > 1) {
+            } else if (value >= 1) {
                 emotionType = EmotionType.SLEEPINESS_MEDIUM;
             } else {
                 emotionType = EmotionType.SLEEPINESS_LOW;
             }
         } else if (P < 0 && A < 0 && D < 0) {
             double value = Math.abs(P) + Math.abs(A) + Math.abs(D);
-            if (value > 2) {
+            if (value >= 2) {
                 emotionType = EmotionType.SADNESS_HIGH;
-            } else if (value > 1) {
+            } else if (value >= 1) {
                 emotionType = EmotionType.SADNESS_MEDIUM;
             } else {
                 emotionType = EmotionType.SADNESS_LOW;
