@@ -21,4 +21,7 @@ public interface ChatsMapper extends BaseMapper<Chats>{
     @Select("select emotion from chats where senderID = #{senderID} and DATE(sendTime) = CURDATE();")
     List<Chats> getCurDayEmotion(int senderID);
 
+    @Select("select * from chats where senderID = #{i} order by sendTime desc limit 1")
+    Chats getLastChat(int i);
+
 }
