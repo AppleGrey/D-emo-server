@@ -229,6 +229,7 @@ public class ScrapBookImpl implements ScrapBookServer {
 //        wrapper.ge(TreeHoleCard::getDate, currentDateStr);
 //        List<TreeHoleCard> treeHoleCards = treeHoleCardMapper.selectList(wrapper);
 //        log.info("【ScrapBookImpl】getADayTreeHoleCard: " + treeHoleCards);
+//        log.info("date: " + date);
         // 获取date时间的树洞卡片
         LambdaQueryWrapper<TreeHoleCard> wrapper = new LambdaQueryWrapper<TreeHoleCard>();
         wrapper.eq(TreeHoleCard::getUserId, userId);

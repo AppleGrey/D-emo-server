@@ -201,11 +201,11 @@ public class SummaryServerImpl implements SummaryServer {
         summary.setUserid(sleepCards.get(0).getUid());
         log.info("emotion:"+emotion);
         if (emotion.equals("['消极']")) {
-            summary.setMood(2131230914);
+            summary.setMood(2131230915);
         } else if (emotion.equals("['积极']")) {
-            summary.setMood(2131230932);
+            summary.setMood(2131230905);
         } else {
-            summary.setMood(2131230912);
+            summary.setMood(2131230913);
         }
         summary.setText(recText);
 //        summaryMapper.insert(summary);
